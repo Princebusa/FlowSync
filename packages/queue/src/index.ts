@@ -18,8 +18,8 @@ let redis: Redis | null = null;
 export function getRedis(): Redis {
   if (redis) return redis;
 
-  const url = process.env.REDIS_URL;
-  redis = new Redis(url as string);
+  const url = process.env.REDIS_URL || "redis://127.0.0.1:6379";
+  redis = new Redis(url);
 
   redis.on("error", (err: Error) => {
     console.error("Redis error:", err.message);

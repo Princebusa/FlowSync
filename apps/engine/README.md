@@ -1,15 +1,36 @@
-# engine
+# Engine worker
 
-To install dependencies:
+Takes jobs from the Redis queue and runs workflows.
 
-```bash
-bun install
+## Structure
+
+```
+src/
+  index.ts      start here
+  config.ts     env vars
+  db.ts         Mongo connection
+  worker.ts     queue loop (take job → run)
+  runner.ts     run one workflow
+  graph.ts      sort nodes in order
+  cancel.ts     check Stop
+  status.ts     tell backend (live UI)
+  helpers.ts    sleep + template fill
+  nodes/        one file per node type
 ```
 
-To run:
+## Run
+
+1. Redis + Mongo + backend must be running
+2. Copy `.env.example` to `.env`
+3. Start:
 
 ```bash
-bun run index.ts
+cd apps/engine
+bun run dev
 ```
 
-This project was created using `bun init` in bun v1.3.5. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+## Flow
+
+```
+Redis job → load workflow → sort nodes → run each node → update Mongo + UI
+```

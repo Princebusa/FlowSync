@@ -144,3 +144,27 @@ export const User = mongoose.model("Users", userSchema);
 export const WorkFlow = mongoose.model("WorkFlows", WorkFlowSchema);
 export const Node = mongoose.model("nodes", NodesSchema);
 export const Execution = mongoose.model("Executions", ExecutionSchema);
+
+/** Shared Mongo connection for backend, engine, and scripts */
+export async function connectDB(uri: string) {
+  if (!uri) {
+    throw new Error("MongoDB URI is required");
+  }
+
+  // Already connected — reuse the same connection
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  await mongoose.connect(uri);
+  console.log("Connected to MongoDB");
+  return mongoose.connection;
+}
+
+export async function disconnectDB() {
+  if (mongoose.connection.readyState === 0) return;
+  await mongoose.disconnect();
+  console.log("Disconnected from MongoDB");
+}
+
+export { mongoose };
