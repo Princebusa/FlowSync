@@ -1,6 +1,7 @@
 import { WorkFlow, Node, Execution } from "db/client";
 import { Response, Request } from "express";
 import { CreateWorkflowSchema } from "comman/types";
+import { addJob, removeJob } from "queue";
 import { broadcastToWorkflow } from "../utils/wsBroadcast";
 
 export const createWorkflow = async (req: Request, res: Response) => {
@@ -98,7 +99,7 @@ export const nodes = async (_req: Request, res: Response) => {
 
 export const executeWorkflow = async (req: Request, res: Response) => {
   try {
-    const { workflowId } = req.params;
+    const workflowId = String(req.params.workflowId);
     const userId = req.userId;
 
     if (!userId) {
@@ -121,12 +122,32 @@ export const executeWorkflow = async (req: Request, res: Response) => {
       startTime: new Date(),
     });
 
+    const executionId = String(execution._id);
+
+    // Put the job into our simple Redis queue
+    try {
+      await addJob({
+        executionId,
+        workflowId,
+        userId: String(userId),
+      });
+    } catch (queueError: any) {
+      execution.status = "FAILED";
+      execution.endTime = new Date();
+      await execution.save();
+      console.error("Failed to add job to Redis:", queueError);
+      return res.status(503).json({
+        message: "Failed to queue workflow — is Redis running?",
+        error: queueError?.message || String(queueError),
+      });
+    }
+
     workflow.isRunning = true;
     await workflow.save();
 
     return res.json({
       success: true,
-      executionId: execution._id,
+      executionId,
       message: "Execution queued successfully",
     });
   } catch (error: any) {
@@ -162,6 +183,13 @@ export const stopWorkflowExecution = async (req: Request, res: Response) => {
 
     if (!execution) {
       return res.status(404).json({ message: "No active execution found to stop" });
+    }
+
+    // Remove from Redis if still waiting. If already picked by engine, it will see CANCELLED in Mongo.
+    try {
+      await removeJob(String(execution._id));
+    } catch (queueError: any) {
+      console.error("Failed to remove Redis job:", queueError?.message || queueError);
     }
 
     await WorkFlow.findByIdAndUpdate(workflowId, { isRunning: false });
