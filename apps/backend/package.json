@@ -12,12 +12,11 @@
   "description": "",
   "dependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/mongoose": "^5.11.96",
-    "@types/nodemailer": "^6.4.14",
     "@types/ws": "^8.5.10",
-    "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "comman": "*",
     "cors": "^2.8.5",
@@ -26,7 +25,6 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.1",
-    "nodemailer": "^6.9.8",
     "typescript": "^5.9.3",
     "ws": "^8.18.0"
   }

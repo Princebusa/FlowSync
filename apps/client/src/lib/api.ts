@@ -1,7 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
 
-const TOKEN_KEY = 'token';
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:2000/api';
+const TOKEN_KEY = "token";
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:2000/api";
 
 export function getAuthToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
@@ -21,12 +21,16 @@ api.interceptors.request.use((config) => {
   const token = getAuthToken();
   if (token) {
     config.headers = config.headers ?? {};
-    (config.headers as any).Authorization = `Bearer ${token}`;
+    (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
   }
   return config;
 });
 
-export async function apiRegister(body: { username: string; email: string; password: string }): Promise<any> {
+export async function apiRegister(body: {
+  username: string;
+  email: string;
+  password: string;
+}): Promise<any> {
   const res = await api.post("/auth/register", body);
   if (res.data.token) {
     setAuthToken(res.data.token);
@@ -42,7 +46,11 @@ export async function apiLogin(body: { email: string; password: string }): Promi
   return res.data;
 }
 
-export async function apiCreateWorkflow(body: { nodes: any[]; edges: any[] }): Promise<any> {
+export async function apiCreateWorkflow(body: {
+  name?: string;
+  nodes: any[];
+  edges: any[];
+}): Promise<any> {
   const res = await api.post("/workflow", body);
   return res.data;
 }
@@ -57,12 +65,10 @@ export async function apiGetWorkflow(workflowId: string): Promise<any> {
   return res.data;
 }
 
-export async function apiGetNodes(): Promise<any> {
-  const res = await api.get("/nodes");
-  return res.data;
-}
-
-export async function apiUpdateWorkflow(workflowId: string, workflow: { nodes: any[]; edges: any[]; name?: string }): Promise<any> {
+export async function apiUpdateWorkflow(
+  workflowId: string,
+  workflow: { nodes: any[]; edges: any[]; name?: string }
+): Promise<any> {
   const res = await api.put(`/workflow/${workflowId}`, workflow);
   return res.data;
 }
@@ -76,15 +82,3 @@ export async function apiStopWorkflowExecution(workflowId: string): Promise<any>
   const res = await api.post(`/workflow/${workflowId}/stop`);
   return res.data;
 }
-
-export async function apiGetLatestExecution(workflowId: string): Promise<any> {
-  const res = await api.get(`/workflow/${workflowId}/execution`);
-  return res.data;
-}
-
-export async function apiExecuteNode(nodeType: string, metadata: any): Promise<any> {
-  const res = await api.post("/execute-node", { nodeType, metadata });
-  return res.data;
-}
-
-

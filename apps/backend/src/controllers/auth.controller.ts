@@ -1,4 +1,3 @@
-import type { NextFunction } from "express"
 import type { Request, Response } from "express"
 import {User} from "db/client"
 import jwt from "jsonwebtoken"

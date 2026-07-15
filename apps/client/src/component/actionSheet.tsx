@@ -2,8 +2,8 @@ import type { NodeTypes } from "comman";
 import { useState } from "react";
 import type { MetaData } from "./workflow";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetClose,
@@ -13,7 +13,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-
 import {
   Select,
   SelectContent,
@@ -22,198 +21,204 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import React from "react";
 
 const SUPPORTED_ACTION = [
   {
-    id: "http-request",
+    id: "http-request" as const,
     title: "HTTP Request",
     description: "Make HTTP requests to any API",
   },
   {
-    id: "mail",
+    id: "mail" as const,
     title: "Send Email (SMTP)",
     description: "Send emails directly via SMTP",
-  }
+  },
 ];
 
 export const ActionSheet = ({
-  onSelect
+  onSelect,
 }: {
-  onSelect: (kind: NodeTypes, metadata: MetaData) => void; 
+  onSelect: (kind: NodeTypes, metadata: MetaData) => void;
 }) => {
   const [metadata, setMetaData] = useState<MetaData>({});
-  const [selectedAction, setSelectedAction] = useState<any>()
+  const [selectedAction, setSelectedAction] = useState<NodeTypes | "">("");
 
   return (
     <Sheet open={true}>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Create an Action</SheetTitle>
-          <SheetDescription>
-            Select an action node and configure its parameters
-          </SheetDescription>
+          <SheetDescription>Select an action node and configure its parameters</SheetDescription>
         </SheetHeader>
-       <div className="px-3 grid gap-5 mt-4">
-         <Select value={selectedAction} onValueChange={(value)=> setSelectedAction(value)}>
-          <SelectTrigger className="w-full border-2 border-black rounded-none shadow-[2px_2px_0_0_#000]">
-            <SelectValue placeholder="Select an Action" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {SUPPORTED_ACTION.map(({ id, title }) => (
-                <React.Fragment key={id}>
-                  <SelectItem value={id}>{title}</SelectItem>
-                </React.Fragment>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+        <div className="px-3 grid gap-5 mt-4">
+          <Select
+            value={selectedAction}
+            onValueChange={(value) => {
+              setSelectedAction(value as NodeTypes);
+              setMetaData({});
+            }}
+          >
+            <SelectTrigger className="w-full border-2 border-black rounded-none shadow-[2px_2px_0_0_#000]">
+              <SelectValue placeholder="Select an Action" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {SUPPORTED_ACTION.map(({ id, title }) => (
+                  <SelectItem key={id} value={id}>
+                    {title}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
 
-        {/* HTTP Request Configuration */}
-        {selectedAction === "http-request" && (
-          <div className="grid gap-3 p-4 border-4 border-black bg-yellow-300 shadow-[4px_4px_0_0_#000] mt-4">
-            <h3 className="font-black uppercase">🌐 HTTP Configuration</h3>
-            <div className="grid gap-2">
-              <Label className="font-bold uppercase text-xs">Method</Label>
-              <Select value={metadata.method} onValueChange={(value) => setMetaData(prev => ({ ...prev, method: value }))}>
-                <SelectTrigger className="bg-white border-2 border-black rounded-none">
-                  <SelectValue placeholder="GET" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="GET">GET</SelectItem>
-                  <SelectItem value="POST">POST</SelectItem>
-                  <SelectItem value="PUT">PUT</SelectItem>
-                  <SelectItem value="DELETE">DELETE</SelectItem>
-                  <SelectItem value="PATCH">PATCH</SelectItem>
-                </SelectContent>
-              </Select>
+          {selectedAction === "http-request" && (
+            <div className="grid gap-3 p-4 border-4 border-black bg-yellow-300 shadow-[4px_4px_0_0_#000] mt-4">
+              <h3 className="font-black uppercase">HTTP Configuration</h3>
+              <div className="grid gap-2">
+                <Label className="font-bold uppercase text-xs">Method</Label>
+                <Select
+                  value={metadata.method}
+                  onValueChange={(value) => setMetaData((prev: MetaData) => ({ ...prev, method: value }))}
+                >
+                  <SelectTrigger className="bg-white border-2 border-black rounded-none">
+                    <SelectValue placeholder="GET" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="GET">GET</SelectItem>
+                    <SelectItem value="POST">POST</SelectItem>
+                    <SelectItem value="PUT">PUT</SelectItem>
+                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    <SelectItem value="PATCH">PATCH</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-bold uppercase text-xs">Target URL</Label>
+                <Input
+                  placeholder="https://api.example.com/endpoint"
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, url: e.target.value }))}
+                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-bold uppercase text-xs">Headers (JSON)</Label>
+                <Input
+                  placeholder='{"Authorization": "Bearer token"}'
+                  onChange={(e) => {
+                    try {
+                      const headers = JSON.parse(e.target.value);
+                      setMetaData((prev: MetaData) => ({ ...prev, headers }));
+                    } catch {
+                      /* ignore invalid JSON while typing */
+                    }
+                  }}
+                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label className="font-bold uppercase text-xs">Body (JSON)</Label>
+                <Input
+                  placeholder='{"key": "value"}'
+                  onChange={(e) => {
+                    try {
+                      const body = JSON.parse(e.target.value);
+                      setMetaData((prev: MetaData) => ({ ...prev, body: JSON.stringify(body) }));
+                    } catch {
+                      /* ignore invalid JSON while typing */
+                    }
+                  }}
+                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
+                />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label className="font-bold uppercase text-xs">Target URL</Label>
-              <Input 
-                placeholder="https://api.example.com/endpoint" 
-                onChange={(e) => setMetaData(prev => ({ ...prev, url: e.target.value }))}
-                className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label className="font-bold uppercase text-xs">Headers (JSON)</Label>
-              <Input 
-                placeholder='{"Authorization": "Bearer token"}' 
-                onChange={(e) => {
-                  try {
-                    const headers = JSON.parse(e.target.value);
-                    setMetaData(prev => ({ ...prev, headers }));
-                  } catch {}
-                }}
-                className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label className="font-bold uppercase text-xs">Body (JSON)</Label>
-              <Input 
-                placeholder='{"key": "value"}' 
-                onChange={(e) => {
-                  try {
-                    const body = JSON.parse(e.target.value);
-                    setMetaData(prev => ({ ...prev, body: JSON.stringify(body) }));
-                  } catch {}
-                }}
-                className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
-              />
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Mail Configuration */}
-        {selectedAction === "mail" && (
-          <div className="grid gap-3 p-4 border-4 border-black bg-blue-300 shadow-[4px_4px_0_0_#000] mt-4 max-h-[50vh] overflow-y-auto">
-            <h3 className="font-black uppercase">📧 SMTP Configuration</h3>
-            
-            <div className="grid grid-cols-2 gap-2">
-               <div className="grid gap-1">
-                 <Label className="font-bold uppercase text-[10px]">SMTP Host</Label>
-                 <Input 
-                   placeholder="smtp.gmail.com" 
-                   onChange={(e) => setMetaData((prev: any) => ({ ...prev, host: e.target.value }))}
-                   className="border-2 border-black rounded-none bg-white text-xs h-8"
-                 />
-               </div>
-               <div className="grid gap-1">
-                 <Label className="font-bold uppercase text-[10px]">Port</Label>
-                 <Input 
-                   type="number"
-                   placeholder="587" 
-                   onChange={(e) => setMetaData((prev: any) => ({ ...prev, port: e.target.value }))}
-                   className="border-2 border-black rounded-none bg-white text-xs h-8"
-                 />
-               </div>
+          {selectedAction === "mail" && (
+            <div className="grid gap-3 p-4 border-4 border-black bg-blue-300 shadow-[4px_4px_0_0_#000] mt-4 max-h-[50vh] overflow-y-auto">
+              <h3 className="font-black uppercase">SMTP Configuration</h3>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="grid gap-1">
+                  <Label className="font-bold uppercase text-[10px]">SMTP Host</Label>
+                  <Input
+                    placeholder="smtp.gmail.com"
+                    onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, host: e.target.value }))}
+                    className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  />
+                </div>
+                <div className="grid gap-1">
+                  <Label className="font-bold uppercase text-[10px]">Port</Label>
+                  <Input
+                    type="number"
+                    placeholder="587"
+                    onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, port: e.target.value }))}
+                    className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-1">
+                <Label className="font-bold uppercase text-[10px]">Username</Label>
+                <Input
+                  placeholder="your-email@gmail.com"
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, user: e.target.value }))}
+                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label className="font-bold uppercase text-[10px]">App Password</Label>
+                <Input
+                  type="password"
+                  placeholder="****"
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, password: e.target.value }))}
+                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                />
+              </div>
+              <hr className="border-black border-2 my-2" />
+              <div className="grid gap-1">
+                <Label className="font-bold uppercase text-[10px]">To Address</Label>
+                <Input
+                  placeholder="recipient@example.com"
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, to: e.target.value }))}
+                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label className="font-bold uppercase text-[10px]">Subject</Label>
+                <Input
+                  placeholder="Automated Alert"
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, subject: e.target.value }))}
+                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                />
+              </div>
+              <div className="grid gap-1">
+                <Label className="font-bold uppercase text-[10px]">Body Text</Label>
+                <textarea
+                  placeholder="Workflow execution completed."
+                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, body: e.target.value }))}
+                  className="border-2 border-black rounded-none bg-white text-xs p-2 min-h-[60px]"
+                />
+                <span className="text-[9px] text-blue-800 font-bold italic">
+                  Tip: Use {"{{ $json.fieldName }}"} to insert data from previous nodes.
+                </span>
+              </div>
             </div>
-
-            <div className="grid gap-1">
-              <Label className="font-bold uppercase text-[10px]">Username</Label>
-              <Input 
-                placeholder="your-email@gmail.com" 
-                onChange={(e) => setMetaData((prev: any) => ({ ...prev, user: e.target.value }))}
-                className="border-2 border-black rounded-none bg-white text-xs h-8"
-              />
-            </div>
-            <div className="grid gap-1">
-              <Label className="font-bold uppercase text-[10px]">App Password</Label>
-              <Input 
-                type="password"
-                placeholder="****" 
-                onChange={(e) => setMetaData((prev: any) => ({ ...prev, password: e.target.value }))}
-                className="border-2 border-black rounded-none bg-white text-xs h-8"
-              />
-            </div>
-
-            <hr className="border-black border-2 my-2" />
-            
-            <div className="grid gap-1">
-              <Label className="font-bold uppercase text-[10px]">To Address</Label>
-              <Input 
-                placeholder="recipient@example.com" 
-                onChange={(e) => setMetaData((prev: any) => ({ ...prev, to: e.target.value }))}
-                className="border-2 border-black rounded-none bg-white text-xs h-8"
-              />
-            </div>
-            <div className="grid gap-1">
-              <Label className="font-bold uppercase text-[10px]">Subject</Label>
-              <Input 
-                placeholder="Automated Alert" 
-                onChange={(e) => setMetaData((prev: any) => ({ ...prev, subject: e.target.value }))}
-                className="border-2 border-black rounded-none bg-white text-xs h-8"
-              />
-            </div>
-            <div className="grid gap-1">
-              <Label className="font-bold uppercase text-[10px]">Body Text</Label>
-              <textarea 
-                placeholder="Workflow execution completed." 
-                onChange={(e) => setMetaData((prev: any) => ({ ...prev, body: e.target.value }))}
-                className="border-2 border-black rounded-none bg-white text-xs p-2 min-h-[60px]"
-              />
-              <span className="text-[9px] text-blue-800 font-bold italic">
-                Tip: Use {"{{ $json.fieldName }}"} to insert data from previous nodes.
-              </span>
-            </div>
-
-          </div>
-        )}
-       </div>
+          )}
+        </div>
 
         <SheetFooter className="mt-8 flex flex-col sm:flex-col gap-4">
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="neo-btn rounded-none bg-yellow-400 text-black w-full py-6 text-xl font-black uppercase hover:bg-yellow-300"
-            onClick={()=> {
-               // Verify required fields if HTTP
-               if (selectedAction === 'http-request' && !metadata.url) return alert('URL is required');
-               // Verify required fields if Mail
-               if (selectedAction === 'mail' && (!metadata.host || !metadata.user || !metadata.password || !metadata.to)) return alert('SMTP credentials & To address are required');
-               
-               onSelect(selectedAction, metadata);
+            onClick={() => {
+              if (!selectedAction) return alert("Select an action");
+              if (selectedAction === "http-request" && !metadata.url) return alert("URL is required");
+              if (
+                selectedAction === "mail" &&
+                (!metadata.host || !metadata.user || !metadata.password || !metadata.to)
+              ) {
+                return alert("SMTP credentials & To address are required");
+              }
+              onSelect(selectedAction, metadata);
             }}
           >
             Save changes

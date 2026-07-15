@@ -86,6 +86,10 @@ const WorkFlowSchema = new Schema({
         ref: 'Users',
         required: true
     },
+    name: {
+        type: String,
+        default: "Untitled Workflow"
+    },
     nodes: [WorkflowNodeSchema],
     edges: [EdgesSchema],
     isRunning: {

@@ -1,1 +1,6 @@
-export type NodeTypes = "mail" | "timer" | "price-trigger" | "webhook" | "schedule" | "http-request" | "file-system" | "data-transform" | "google-sheets";
+export type NodeTypes =
+  | "mail"
+  | "timer"
+  | "webhook"
+  | "schedule"
+  | "http-request";

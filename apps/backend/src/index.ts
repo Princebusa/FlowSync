@@ -33,7 +33,7 @@ const connectDB = async () => {
 };
 
 // Start server
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 2000;
 
 const startServer = async (): Promise<void> => {
   await connectDB();

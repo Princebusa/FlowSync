@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
-import {ActionSheet} from "./actionSheet"
-import {Mail} from '../nodes/actions/mail'
-import {HttpRequest} from '../nodes/actions/HttpRequest'
+import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from "react";
+import { ActionSheet } from "./actionSheet";
+import { Mail } from "../nodes/actions/mail";
+import { HttpRequest } from "../nodes/actions/HttpRequest";
 import type { NodeTypes } from "comman";
 import {
   ReactFlow,
@@ -13,43 +13,67 @@ import {
 import "@xyflow/react/dist/style.css";
 import { TriggerSheet } from "./TriggerSheet";
 import { Timer } from "@/nodes/triggers/Timer";
-import {Webhook} from "@/nodes/triggers/Webhook"
-import {Schedule} from "@/nodes/triggers/Schedule"
+import { Webhook } from "@/nodes/triggers/Webhook";
+import { Schedule } from "@/nodes/triggers/Schedule";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { apiGetWorkflow, apiUpdateWorkflow, apiExecuteWorkflow, apiStopWorkflowExecution } from "@/lib/api";
+import {
+  apiGetWorkflow,
+  apiUpdateWorkflow,
+  apiExecuteWorkflow,
+  apiStopWorkflowExecution,
+} from "@/lib/api";
 
-
-
-interface NodeType {
+interface WorkflowNode {
   type: NodeTypes;
   data: {
     kind: "ACTION" | "TRIGGER";
     metadata: MetaData;
-    status?: 'pending' | 'running' | 'success' | 'failed';
+    status?: "pending" | "running" | "success" | "failed";
   };
   id: string;
   position: { x: number; y: number };
 }
-export type MetaData = any;
+
+export type MetaData = Record<string, any>;
+
 interface Edge {
   id: string;
   source: string;
-  target: string
+  target: string;
+}
+
+interface ExecutionLog {
+  timestamp: string;
+  message: string;
+  type: "info" | "success" | "error";
 }
 
 const nodeTypes = {
-  "timer": Timer,
-  "webhook": Webhook,
-  "schedule": Schedule,
-  "mail": Mail,
-  "http-request": HttpRequest
+  timer: Timer,
+  webhook: Webhook,
+  schedule: Schedule,
+  mail: Mail,
+  "http-request": HttpRequest,
 };
 
-export default function workflow() {
-  const [nodes, setNodes] = useState<NodeType[]>([]);
+const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:2000";
+
+function addLog(
+  setLogs: Dispatch<SetStateAction<ExecutionLog[]>>,
+  message: string,
+  type: ExecutionLog["type"] = "info"
+) {
+  setLogs((prev) => [
+    ...prev,
+    { timestamp: new Date().toLocaleTimeString(), message, type },
+  ]);
+}
+
+export default function Workflow() {
+  const [nodes, setNodes] = useState<WorkflowNode[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -59,12 +83,15 @@ export default function workflow() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
-  const [runResult, setRunResult] = useState<{ success: boolean; error?: string; nodeOutputs?: Record<string, unknown> } | null>(null);
-  const [executionLogs, setExecutionLogs] = useState<{ timestamp: string, message: string, type: 'info' | 'success' | 'error' }[]>([]);
+  const [executionLogs, setExecutionLogs] = useState<ExecutionLog[]>([]);
+  const [action, setAction] = useState<{
+    position: { x: number; y: number };
+    parentNode: string;
+  } | null>(null);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   const handleUpdateWorkflow = async () => {
@@ -74,7 +101,6 @@ export default function workflow() {
     try {
       await apiUpdateWorkflow(workflowId, { nodes, edges });
       setHasChanges(false);
-      alert("Workflow updated successfully!");
     } catch (error) {
       console.error("Failed to update workflow:", error);
       alert("Failed to update workflow. Please try again.");
@@ -86,37 +112,42 @@ export default function workflow() {
   const handleRunWorkflow = async () => {
     if (!workflowId) return;
     setIsRunning(true);
-    setRunResult(null);
-    setExecutionLogs([{ timestamp: new Date().toLocaleTimeString(), message: "🚀 Initialization: Sending Workflow to Executor...", type: "info" }]);
+    setExecutionLogs([
+      {
+        timestamp: new Date().toLocaleTimeString(),
+        message: "Queuing workflow execution...",
+        type: "info",
+      },
+    ]);
     try {
       const result = await apiExecuteWorkflow(workflowId);
-      setRunResult({
-        success: result.success ?? false,
-        error: result.error,
-        nodeOutputs: result.nodeOutputs,
-      });
       if (result.success) {
-        setExecutionLogs(prev => [...prev, { timestamp: new Date().toLocaleTimeString(), message: "✨ Workflow execution started", type: "success" }]);
+        addLog(setExecutionLogs, "Workflow queued — waiting for worker", "success");
       } else {
-        setExecutionLogs(prev => [...prev, { timestamp: new Date().toLocaleTimeString(), message: `❌ Workflow run failed: ${result.error ?? "Unknown error"}`, type: "error" }]);
+        setIsRunning(false);
+        addLog(setExecutionLogs, `Queue failed: ${result.error ?? "Unknown error"}`, "error");
       }
     } catch (err: unknown) {
-      const message = err && typeof err === "object" && "message" in err ? String((err as { message: string }).message) : "Failed to run workflow";
-      setRunResult({ success: false, error: message });
-      setExecutionLogs(prev => [...prev, { timestamp: new Date().toLocaleTimeString(), message: `❌ Workflow execution crashed: ${message}`, type: "error" }]);
-    } finally {
-      // Don't set isRunning(false) here, wait for WebSocket to tell us it's done!
+      setIsRunning(false);
+      const message =
+        err && typeof err === "object" && "message" in err
+          ? String((err as { message: string }).message)
+          : "Failed to run workflow";
+      addLog(setExecutionLogs, message, "error");
     }
   };
 
   const handleStopWorkflow = async () => {
     if (!workflowId) return;
     try {
-      setExecutionLogs(prev => [...prev, { timestamp: new Date().toLocaleTimeString(), message: "⏹️ Requesting to stop execution...", type: "info" }]);
+      addLog(setExecutionLogs, "Requesting stop...", "info");
       await apiStopWorkflowExecution(workflowId);
     } catch (err: any) {
-      console.error("Failed to stop workflow:", err);
-      setExecutionLogs(prev => [...prev, { timestamp: new Date().toLocaleTimeString(), message: "❌ Failed to stop: " + (err.response?.data?.message || err.message), type: "error" }]);
+      addLog(
+        setExecutionLogs,
+        "Failed to stop: " + (err.response?.data?.message || err.message),
+        "error"
+      );
     }
   };
 
@@ -128,22 +159,17 @@ export default function workflow() {
       try {
         setIsLoading(true);
         setLoadError(null);
-        const wfRaw = await apiGetWorkflow(workflowId);
-        console.log("Fetched workflow data:", wfRaw);
-        const wf = Array.isArray(wfRaw)
-          ? wfRaw.find((x: any) => String(x?._id) === String(workflowId)) ?? wfRaw[0]
-          : wfRaw;
+        const wf = await apiGetWorkflow(workflowId);
 
-        // Backend stores nodes as { nodeId, data: { kind: "ACTION"|"TRIGGER" }, ... }
-        const mappedNodes: NodeType[] = (wf?.nodes || []).map((n: any) => ({
+        const mappedNodes: WorkflowNode[] = (wf?.nodes || []).map((n: any) => ({
           id: String(n.id),
-          type: n.nodeId.title,
+          type: (n.nodeId?.title || n.type) as NodeTypes,
           position: n.position,
           data: {
             kind:
               String(n?.data?.kind || "")
-                .toLowerCase()
-                .includes("trigger")
+                .toUpperCase()
+                .includes("TRIGGER")
                 ? "TRIGGER"
                 : "ACTION",
             metadata: n?.data?.metadata,
@@ -159,6 +185,7 @@ export default function workflow() {
         if (!cancelled) {
           setNodes(mappedNodes);
           setEdges(mappedEdges);
+          setIsRunning(Boolean(wf?.isRunning));
         }
       } catch (e: any) {
         if (!cancelled) setLoadError(e?.message || "Failed to load workflow");
@@ -175,10 +202,9 @@ export default function workflow() {
   useEffect(() => {
     if (!workflowId) return;
 
-    const ws = new WebSocket("ws://localhost:2000");
+    const ws = new WebSocket(WS_URL);
 
     ws.onopen = () => {
-      console.log("Connected to WS");
       ws.send(JSON.stringify({ type: "subscribe", workflowId }));
     };
 
@@ -187,37 +213,48 @@ export default function workflow() {
         const eventData = JSON.parse(event.data);
         if (eventData.type === "node-status-change" && eventData.nodeId) {
           setNodes((nds) => {
-             const node = nds.find(n => n.id === eventData.nodeId);
-             if (node) {
-                 const nodeType = node.type.toUpperCase();
-                 const textStatus = eventData.status === 'running' ? 'Started ⏳' : eventData.status === 'success' ? 'Completed ✅' : 'Failed ❌';
-                 const logType = eventData.status === 'failed' ? 'error' : eventData.status === 'success' ? 'success' : 'info';
-                 setTimeout(() => {
-                    setExecutionLogs(prev => [...prev, {
-                       timestamp: new Date().toLocaleTimeString(),
-                       message: `[${nodeType}] ${textStatus}`,
-                       type: logType
-                    }]);
-                 }, 0);
-             }
+            const node = nds.find((n) => n.id === eventData.nodeId);
+            if (node) {
+              const textStatus =
+                eventData.status === "running"
+                  ? "Started"
+                  : eventData.status === "success"
+                    ? "Completed"
+                    : "Failed";
+              const logType =
+                eventData.status === "failed"
+                  ? "error"
+                  : eventData.status === "success"
+                    ? "success"
+                    : "info";
+              setTimeout(() => {
+                addLog(setExecutionLogs, `[${node.type}] ${textStatus}`, logType);
+              }, 0);
+            }
 
-            return nds.map((n) => {
-               if (n.id === eventData.nodeId) {
-                 return { ...n, data: { ...n.data, status: eventData.status } };
-               }
-               return n;
-            });
+            return nds.map((n) =>
+              n.id === eventData.nodeId
+                ? { ...n, data: { ...n.data, status: eventData.status } }
+                : n
+            );
           });
-        } else if (eventData.type === "workflow-stopped" || eventData.type === "workflow-finished" || eventData.type === "workflow-failed") {
-           setIsRunning(false);
-           const msg = eventData.type === "workflow-stopped" ? "🛑 Workflow execution has been STOPPED by user." : 
-                       eventData.type === "workflow-finished" ? "✨ Workflow execution finished successfully!" : 
-                       "❌ Workflow execution failed.";
-           setExecutionLogs(prev => [...prev, { 
-              timestamp: new Date().toLocaleTimeString(), 
-              message: msg, 
-              type: eventData.type === "workflow-failed" ? "error" : "success" 
-           }]);
+        } else if (
+          eventData.type === "workflow-stopped" ||
+          eventData.type === "workflow-finished" ||
+          eventData.type === "workflow-failed"
+        ) {
+          setIsRunning(false);
+          const msg =
+            eventData.type === "workflow-stopped"
+              ? "Workflow stopped"
+              : eventData.type === "workflow-finished"
+                ? "Workflow finished successfully"
+                : "Workflow failed";
+          addLog(
+            setExecutionLogs,
+            msg,
+            eventData.type === "workflow-failed" ? "error" : "success"
+          );
         }
       } catch (e) {
         console.error(e);
@@ -229,65 +266,44 @@ export default function workflow() {
     };
   }, [workflowId]);
 
+  const onNodesChange = useCallback((changes: any) => {
+    setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot) as WorkflowNode[]);
+    setHasChanges(true);
+  }, []);
 
-  const [action, setAction] = useState<{
-       position:{
-        x: number,
-        y: number
-       }
-       parentNode: string
-  } | null>(null)
+  const onEdgesChange = useCallback((changes: any) => {
+    setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot) as Edge[]);
+    setHasChanges(true);
+  }, []);
 
-  const onNodesChange = useCallback(
-    (changes: any) => {
-      setNodes((nodesSnapshot) => applyNodeChanges(changes, nodesSnapshot));
-      setHasChanges(true);
-    },
-    []
-  );
-  const onEdgesChange = useCallback(
-    (changes: any) => {
-      setEdges((edgesSnapshot) => applyEdgeChanges(changes, edgesSnapshot));
-      setHasChanges(true);
-    },
-    []
-  );
-  const onConnect = useCallback(
-    (params: any) =>
-      setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
-    []
-  );
+  const onConnect = useCallback((params: any) => {
+    setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot));
+    setHasChanges(true);
+  }, []);
 
-  const onConnectEnd = useCallback(
-    (_params: any, sh: any)=>
-    {
-
-if(!sh.isValid){
- 
-  setAction({
-    position: {
-      x: sh.from.x + 100,
-      y: sh.from.y + -18
-    },
-    parentNode: sh.fromNode.id
-  })
-}
+  const onConnectEnd = useCallback((_params: any, sh: any) => {
+    if (!sh.isValid) {
+      setAction({
+        position: {
+          x: sh.from.x + 100,
+          y: sh.from.y - 18,
+        },
+        parentNode: sh.fromNode.id,
+      });
     }
-    ,[]
-  );
+  }, []);
 
   return (
     <div style={{ width: "100vw", height: "100vh", backgroundColor: "#fefce8" }}>
-      {/* Floating Neo-Brutalist Header */}
       <div className="absolute top-6 left-6 right-6 z-10 flex justify-between items-center bg-white border-4 border-black p-4 shadow-[8px_8px_0_0_#000]">
         <div className="font-black text-2xl tracking-tighter uppercase">
-          FlowSync<span className="text-pink-500"></span> / <span className="text-gray-500">Editor</span>
+          FlowSync / <span className="text-gray-500">Editor</span>
         </div>
         <div className="flex gap-4">
           <Button
             onClick={handleRunWorkflow}
             disabled={isLoading || isRunning || nodes.length === 0}
-            className={`font-black uppercase text-lg border-4 border-black rounded-none px-6 py-6 ${isRunning ? 'bg-gray-300' : 'bg-yellow-400 hover:bg-yellow-300 neo-btn text-black'}`}
+            className={`font-black uppercase text-lg border-4 border-black rounded-none px-6 py-6 ${isRunning ? "bg-gray-300" : "bg-yellow-400 hover:bg-yellow-300 neo-btn text-black"}`}
           >
             {isRunning ? "Running…" : "Run"}
           </Button>
@@ -302,7 +318,7 @@ if(!sh.isValid){
           <Button
             onClick={handleUpdateWorkflow}
             disabled={!hasChanges || isSaving || isLoading}
-            className={`font-black uppercase text-lg border-4 border-black rounded-none px-6 py-6 ${!hasChanges || isSaving ? 'bg-gray-300' : 'bg-green-400 hover:bg-green-300 neo-btn text-black'}`}
+            className={`font-black uppercase text-lg border-4 border-black rounded-none px-6 py-6 ${!hasChanges || isSaving ? "bg-gray-300" : "bg-green-400 hover:bg-green-300 neo-btn text-black"}`}
           >
             {isSaving ? "Saving…" : "Save"}
           </Button>
@@ -315,7 +331,7 @@ if(!sh.isValid){
           </Button>
         </div>
       </div>
-      
+
       {isLoading && (
         <div className="absolute top-32 left-1/2 -translate-x-1/2 z-10 bg-yellow-300 border-4 border-black p-4 shadow-[4px_4px_0_0_#000] font-bold text-xl uppercase">
           Loading workflow...
@@ -326,60 +342,50 @@ if(!sh.isValid){
           {loadError}
         </div>
       )}
-      {runResult && (
-        <div
-          className={`absolute top-32 left-1/2 -translate-x-1/2 z-10 px-8 py-4 border-4 border-black font-black uppercase shadow-[8px_8px_0_0_#000] text-xl ${
-            runResult.success ? "bg-green-400 text-black" : "bg-red-400 text-black"
-          }`}
-        >
-          {runResult.success ? "Success: Run complete" : `Failed: ${runResult.error ?? "Unknown error"}`}
-        </div>
-      )}
 
-
-      {action && <ActionSheet  onSelect={(type, metadata)=> {
-        const nodeid = Math.random().toString()
-        setNodes([...nodes, {
-          id: nodeid,
-          type,
-          data:{
-             kind: "ACTION",
-            metadata,
-           
-          },
-          position: action.position
-
-        }])
-
-        setEdges([...edges, {
-          id: `${nodeid}-weerwer`,
-          source: action.parentNode,
-          target: nodeid
-        }])
-        setAction(null)
-      }}/>}
-
-
-
-      {!nodes.length && (
-        <TriggerSheet
+      {action && (
+        <ActionSheet
           onSelect={(type, metadata) => {
+            const nodeId = crypto.randomUUID();
             setNodes([
               ...nodes,
               {
-                id: Math.random().toString(),
+                id: nodeId,
                 type,
-                data: {
-                  kind: "TRIGGER",
-
-                  metadata,
-                },
-                position: { x: 0, y: 0 },
+                data: { kind: "ACTION", metadata },
+                position: action.position,
               },
             ]);
+            setEdges([
+              ...edges,
+              {
+                id: `${action.parentNode}-${nodeId}`,
+                source: action.parentNode,
+                target: nodeId,
+              },
+            ]);
+            setAction(null);
+            setHasChanges(true);
           }}
         />
       )}
+
+      {!nodes.length && !isLoading && (
+        <TriggerSheet
+          onSelect={(type, metadata) => {
+            setNodes([
+              {
+                id: crypto.randomUUID(),
+                type,
+                data: { kind: "TRIGGER", metadata },
+                position: { x: 0, y: 0 },
+              },
+            ]);
+            setHasChanges(true);
+          }}
+        />
+      )}
+
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -393,22 +399,35 @@ if(!sh.isValid){
         <Background color="#000" gap={24} size={2} />
       </ReactFlow>
 
-      {/* Live Execution Panel */}
       {executionLogs.length > 0 && (
-         <div className="absolute top-32 right-6 bottom-6 w-96 bg-white border-4 border-black shadow-[8px_8px_0_0_#000] z-20 flex flex-col">
-            <div className="bg-black text-white p-4 font-black uppercase text-xl flex justify-between items-center">
-               <span>Live Execution</span>
-               <button onClick={() => { setExecutionLogs([]); setRunResult(null); }} className="bg-red-500 hover:bg-red-400 text-black border-2 border-white px-2 py-1 text-sm rounded-none">CLEAR</button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-[#f0f0f0]">
-               {executionLogs.map((log, i) => (
-                  <div key={i} className={`p-3 border-2 border-black font-bold text-sm shadow-[2px_2px_0_0_#000] ${log.type === 'error' ? 'bg-red-300' : log.type === 'success' ? 'bg-green-300' : 'bg-white'}`}>
-                     <div className="text-[10px] text-gray-600 mb-1">{log.timestamp}</div>
-                     <div>{log.message}</div>
-                  </div>
-               ))}
-            </div>
-         </div>
+        <div className="absolute top-32 right-6 bottom-6 w-96 bg-white border-4 border-black shadow-[8px_8px_0_0_#000] z-20 flex flex-col">
+          <div className="bg-black text-white p-4 font-black uppercase text-xl flex justify-between items-center">
+            <span>Live Execution</span>
+            <button
+              onClick={() => setExecutionLogs([])}
+              className="bg-red-500 hover:bg-red-400 text-black border-2 border-white px-2 py-1 text-sm rounded-none"
+            >
+              CLEAR
+            </button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-[#f0f0f0]">
+            {executionLogs.map((log, i) => (
+              <div
+                key={i}
+                className={`p-3 border-2 border-black font-bold text-sm shadow-[2px_2px_0_0_#000] ${
+                  log.type === "error"
+                    ? "bg-red-300"
+                    : log.type === "success"
+                      ? "bg-green-300"
+                      : "bg-white"
+                }`}
+              >
+                <div className="text-[10px] text-gray-600 mb-1">{log.timestamp}</div>
+                <div>{log.message}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

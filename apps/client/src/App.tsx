@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/dashboard";
 import Workflow from "./component/workflow";
 import Login from "./pages/Login";
@@ -6,7 +6,7 @@ import Register from "./pages/Register";
 import Home from "./pages/Home";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
-import '@xyflow/react/dist/style.css';
+import "@xyflow/react/dist/style.css";
 
 export default function App() {
   return (
@@ -22,11 +22,14 @@ export default function App() {
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
-            }/>
-            <Route
+            }
+          />
+          <Route
             path="/workflow/:workflowId"
             element={
-              <Workflow/>
+              <ProtectedRoute>
+                <Workflow />
+              </ProtectedRoute>
             }
           />
         </Routes>
