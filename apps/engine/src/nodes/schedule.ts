@@ -1,4 +1,4 @@
-import { sleep } from "../helpers.ts";
+import { sleep } from "../helpers";
 
 /** Simple wait using interval seconds from metadata */
 export async function runSchedule(metadata: any, input: any) {

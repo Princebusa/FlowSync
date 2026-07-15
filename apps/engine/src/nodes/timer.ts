@@ -1,4 +1,4 @@
-import { sleep } from "../helpers.ts";
+import { sleep } from "../helpers";
 
 /** Wait for N seconds, then pass data through */
 export async function runTimer(metadata: any, input: any) {

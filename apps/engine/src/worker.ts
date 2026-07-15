@@ -1,5 +1,5 @@
 import { takeJob } from "queue";
-import { runWorkflow } from "./runner.ts";
+import { runWorkflow } from "./runner";
 
 /**
  * Forever loop:

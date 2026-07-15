@@ -1,8 +1,8 @@
 import { WorkFlow, Execution } from "db/client";
-import { sortNodes, type GraphNode, type GraphEdge } from "./graph.ts";
-import { runNode } from "./nodes/index.ts";
-import { isCancelled } from "./cancel.ts";
-import { reportNodeStatus, reportWorkflowStatus } from "./status.ts";
+import { sortNodes, type GraphNode, type GraphEdge } from "./graph";
+import { runNode } from "./nodes/index";
+import { isCancelled } from "./cancel";
+import { reportNodeStatus, reportWorkflowStatus } from "./status";
 
 /**
  * Load workflow from Mongo and run each node in order.

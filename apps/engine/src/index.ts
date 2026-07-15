@@ -1,6 +1,6 @@
 import { connectDB } from "db/client";
-import { startWorker } from "./worker.ts";
-import { MONGO_URI } from "./config.ts";
+import { startWorker } from "./worker";
+import { MONGO_URI } from "./config";
 
 async function main() {
   console.log("Starting engine...");

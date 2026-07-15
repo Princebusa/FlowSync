@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BACKEND_URL } from "./config.ts";
+import { BACKEND_URL } from "./config";
 
 /** Tell the backend so the UI can update live */
 export async function reportNodeStatus(

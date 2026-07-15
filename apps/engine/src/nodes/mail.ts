@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer";
-import { fillTemplate } from "../helpers.ts";
+import { fillTemplate } from "../helpers";
 
 export async function runMail(metadata: any, input: any) {
   const { host, port, user, password, to } = metadata || {};

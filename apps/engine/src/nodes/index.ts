@@ -1,8 +1,8 @@
-import { runTimer } from "./timer.ts";
-import { runSchedule } from "./schedule.ts";
-import { runWebhook } from "./webhook.ts";
-import { runHttpRequest } from "./http-request.ts";
-import { runMail } from "./mail.ts";
+import { runTimer } from "./timer";
+import { runSchedule } from "./schedule";
+import { runWebhook } from "./webhook";
+import { runHttpRequest } from "./http-request";
+import { runMail } from "./mail";
 
 /** Pick the right function for this node type */
 export async function runNode(type: string, metadata: any, input: any) {
