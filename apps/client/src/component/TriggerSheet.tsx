@@ -29,14 +29,21 @@ const SUPPORTED_TRIGGER = [
 
 export const TriggerSheet = ({
   onSelect,
+  onClose,
 }: {
   onSelect: (kind: NodeTypes, metadata: MetaData) => void;
+  onClose?: () => void;
 }) => {
   const [metadata, setMetaData] = useState<MetaData>({});
   const [selectedTrigger, setSelectedTrigger] = useState<NodeTypes>("timer");
 
   return (
-    <Sheet open={true}>
+    <Sheet
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) onClose?.();
+      }}
+    >
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="font-display">Add trigger</SheetTitle>
@@ -201,8 +208,13 @@ export const TriggerSheet = ({
           )}
         </div>
 
-        <SheetFooter className="mt-6">
+        <SheetFooter className="mt-6 flex flex-col gap-2 sm:flex-col">
           <Button onClick={() => onSelect(selectedTrigger, metadata)}>Add trigger</Button>
+          {onClose && (
+            <Button variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

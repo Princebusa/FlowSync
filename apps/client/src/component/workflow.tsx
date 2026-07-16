@@ -13,6 +13,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { TriggerSheet } from "./TriggerSheet";
+import { AddTriggerPlaceholder } from "./AddTriggerPlaceholder";
 import { Timer } from "@/nodes/triggers/Timer";
 import { Webhook } from "@/nodes/triggers/Webhook";
 import { Schedule } from "@/nodes/triggers/Schedule";
@@ -91,6 +92,7 @@ export default function Workflow() {
     parentNode: string;
   } | null>(null);
   const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+  const [showTriggerSheet, setShowTriggerSheet] = useState(false);
 
   const editingNode = editingNodeId
     ? nodes.find((n) => n.id === editingNodeId) || null
@@ -193,6 +195,7 @@ export default function Workflow() {
           setNodes(mappedNodes);
           setEdges(mappedEdges);
           setIsRunning(Boolean(wf?.isRunning));
+          setShowTriggerSheet(false);
         }
       } catch (e: any) {
         if (!cancelled) setLoadError(e?.message || "Failed to load workflow");
@@ -304,6 +307,7 @@ export default function Workflow() {
     <div className="relative h-screen w-screen bg-[#f4f6f8]">
       <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between gap-4 rounded-xl border border-border bg-card/95 px-4 py-2.5 shadow-sm backdrop-blur-sm">
         <div className="font-display flex items-center gap-2 text-sm font-medium tracking-tight">
+          <img src="/logo.png" alt="FlowSync" className="h-4 w-4" />
           <span>FlowSync</span>
           <span className="text-muted-foreground">/</span>
           <span className="text-muted-foreground">Editor</span>
@@ -375,8 +379,13 @@ export default function Workflow() {
         />
       )}
 
-      {!nodes.length && !isLoading && (
+      {!isLoading && nodes.length === 0 && !showTriggerSheet && (
+        <AddTriggerPlaceholder onClick={() => setShowTriggerSheet(true)} />
+      )}
+
+      {!isLoading && showTriggerSheet && nodes.length === 0 && (
         <TriggerSheet
+          onClose={() => setShowTriggerSheet(false)}
           onSelect={(type, metadata) => {
             setNodes([
               {
@@ -386,6 +395,7 @@ export default function Workflow() {
                 position: { x: 0, y: 0 },
               },
             ]);
+            setShowTriggerSheet(false);
             setHasChanges(true);
           }}
         />
