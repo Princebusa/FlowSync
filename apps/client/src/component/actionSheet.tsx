@@ -37,14 +37,21 @@ const SUPPORTED_ACTION = [
 
 export const ActionSheet = ({
   onSelect,
+  onClose,
 }: {
   onSelect: (kind: NodeTypes, metadata: MetaData) => void;
+  onClose: () => void;
 }) => {
   const [metadata, setMetaData] = useState<MetaData>({});
   const [selectedAction, setSelectedAction] = useState<NodeTypes | "">("");
 
   return (
-    <Sheet open={true}>
+    <Sheet
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Create an Action</SheetTitle>

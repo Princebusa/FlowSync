@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
-    "dev": "node dist/index.js"
+    "dev": "bun run dist/index.js",
+    "start": "bun run src/index.ts",
+    "build": "bunx tsc"
   },
   "keywords": [],
   "author": "",

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, type Dispatch, type SetStateAction } from "react";
 import { ActionSheet } from "./actionSheet";
+import { EditNodeSheet } from "./EditNodeSheet";
 import { Mail } from "../nodes/actions/mail";
 import { HttpRequest } from "../nodes/actions/HttpRequest";
 import type { NodeTypes } from "comman";
@@ -16,6 +17,7 @@ import { Timer } from "@/nodes/triggers/Timer";
 import { Webhook } from "@/nodes/triggers/Webhook";
 import { Schedule } from "@/nodes/triggers/Schedule";
 import { useAuth } from "@/contexts/AuthContext";
+import { EditNodeProvider } from "@/contexts/EditNodeContext";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -88,6 +90,11 @@ export default function Workflow() {
     position: { x: number; y: number };
     parentNode: string;
   } | null>(null);
+  const [editingNodeId, setEditingNodeId] = useState<string | null>(null);
+
+  const editingNode = editingNodeId
+    ? nodes.find((n) => n.id === editingNodeId) || null
+    : null;
 
   const handleLogout = () => {
     logout();
@@ -345,6 +352,7 @@ export default function Workflow() {
 
       {action && (
         <ActionSheet
+          onClose={() => setAction(null)}
           onSelect={(type, metadata) => {
             const nodeId = crypto.randomUUID();
             setNodes([
@@ -386,18 +394,40 @@ export default function Workflow() {
         />
       )}
 
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onConnectEnd={onConnectEnd}
-        fitView
-      >
-        <Background color="#000" gap={24} size={2} />
-      </ReactFlow>
+      <EditNodeProvider onEdit={setEditingNodeId}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          nodeTypes={nodeTypes}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onConnectEnd={onConnectEnd}
+          fitView
+        >
+          <Background color="#000" gap={24} size={2} />
+        </ReactFlow>
+      </EditNodeProvider>
+
+      {editingNode && (
+        <EditNodeSheet
+          open={true}
+          nodeType={editingNode.type}
+          metadata={editingNode.data.metadata || {}}
+          onClose={() => setEditingNodeId(null)}
+          onSave={(metadata) => {
+            setNodes((nds) =>
+              nds.map((n) =>
+                n.id === editingNode.id
+                  ? { ...n, data: { ...n.data, metadata } }
+                  : n
+              )
+            );
+            setEditingNodeId(null);
+            setHasChanges(true);
+          }}
+        />
+      )}
 
       {executionLogs.length > 0 && (
         <div className="absolute top-32 right-6 bottom-6 w-96 bg-white border-4 border-black shadow-[8px_8px_0_0_#000] z-20 flex flex-col">
