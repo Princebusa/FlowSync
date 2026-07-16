@@ -7,12 +7,12 @@ import { useEditNode } from "@/contexts/EditNodeContext";
 type NodeCardProps = {
   id: string;
   type: string;
-  /** Triggers only have a source handle on the right */
   isTrigger?: boolean;
 };
 
 export function NodeCard({ id, type, isTrigger = false }: NodeCardProps) {
   const style = getNodeStyle(type);
+  const { Icon } = style;
   const onEdit = useEditNode();
 
   const handleEdit = (e: MouseEvent) => {
@@ -21,38 +21,40 @@ export function NodeCard({ id, type, isTrigger = false }: NodeCardProps) {
   };
 
   return (
-    <div className={`${style.color} w-52 flex flex-col border-4 border-black`}>
-      <div className="bg-black text-white p-3 font-black uppercase tracking-tight flex items-center gap-2">
-        <span className="text-lg">{style.icon}</span>
-        <span className="truncate">{style.title}</span>
-      </div>
-
-      <div className="p-4 flex items-center justify-center gap-3">
-        <div className="w-14 h-14 bg-white border-4 border-black flex items-center justify-center text-3xl shadow-[4px_4px_0_0_#000]">
-          {style.icon}
+    <div
+      className={`${style.surface} w-48 rounded-xl border border-border shadow-sm transition-shadow hover:shadow-md`}
+    >
+      <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${style.accent}`}
+          >
+            <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+          </span>
+          <span className="truncate font-display text-sm font-medium tracking-tight text-foreground">
+            {style.title}
+          </span>
         </div>
         <button
           type="button"
           onClick={handleEdit}
           title="Edit node"
-          className="w-12 h-12 bg-white border-4 border-black flex items-center justify-center shadow-[4px_4px_0_0_#000] hover:bg-yellow-200 hover:-translate-y-0.5 hover:-translate-x-0.5 hover:shadow-[6px_6px_0_0_#000] active:translate-x-0 active:translate-y-0 active:shadow-[2px_2px_0_0_#000] transition-all"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <Pencil className="w-5 h-5 text-black stroke-[2.5]" />
+          <Pencil className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      {!isTrigger && (
-        <Handle
-          type="target"
-          position={Position.Left}
-          className="w-5 h-5 bg-black border-4 border-white rounded-none -left-2.5"
-        />
-      )}
-      <Handle
-        type="source"
-        position={Position.Right}
-        className="w-5 h-5 bg-black border-4 border-white rounded-none -right-2.5"
-      />
+      <div className="flex items-center justify-center px-3 py-5">
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-lg ${style.accent}`}
+        >
+          <Icon className="h-6 w-6" strokeWidth={1.5} />
+        </div>
+      </div>
+
+      {!isTrigger && <Handle type="target" position={Position.Left} />}
+      <Handle type="source" position={Position.Right} />
     </div>
   );
 }

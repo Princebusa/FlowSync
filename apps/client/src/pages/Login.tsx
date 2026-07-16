@@ -1,63 +1,66 @@
-import { useState, useEffect } from 'react';
-import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { apiLogin } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
+import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { apiLogin } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isAuthenticated, authLoading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       const data = await apiLogin({ email, password });
       login(data.user);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yellow-50 p-6 selection:bg-pink-500 selection:text-white">
-      <Link to="/" className="absolute top-8 left-8 font-black text-3xl tracking-tighter hover:bg-black hover:text-white transition-colors p-2">
-        FlowSync<span className="text-pink-500"></span>
+    <div className="relative flex min-h-screen items-center justify-center px-6">
+      <Link
+        to="/"
+        className="absolute left-6 top-6 font-display text-lg font-semibold tracking-tight"
+      >
+        FlowSync
       </Link>
-      
-      <div className="w-full max-w-md p-10 space-y-8 bg-pink-300 border-4 border-black shadow-[8px_8px_0_0_#000]">
-        <div className="text-center">
-          <h1 className="text-5xl font-black uppercase tracking-tight">Login</h1>
-          <p className="text-black font-bold mt-2 text-lg">Welcome back to automate.</p>
+
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="mb-8 space-y-1">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Welcome back</h1>
+          <p className="text-sm text-muted-foreground">Sign in to continue to your workflows.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {error && (
-            <div className="p-4 bg-white border-4 border-black font-bold text-red-600 shadow-[4px_4px_0_0_#000]">
+            <div className="rounded-lg border border-destructive/20 bg-red-50 px-3 py-2 text-sm text-destructive">
               {error}
             </div>
           )}
 
-          <div className="space-y-3">
-            <Label htmlFor="email" className="font-bold text-xl uppercase">Email</Label>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
@@ -65,12 +68,12 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
-          <div className="space-y-3">
-            <Label htmlFor="password" className="font-bold text-xl uppercase">Password</Label>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
@@ -78,25 +81,21 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full bg-blue-400 text-black py-8 text-2xl font-black uppercase rounded-none border-4 border-black ${isLoading ? 'opacity-50' : 'shadow-[4px_4px_0_0_#000] hover:-translate-y-1 hover:-translate-x-1 active:translate-y-1 active:translate-x-1 active:shadow-none transition-all'}`}
-          >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+          <Button type="submit" disabled={isLoading} className="h-10 w-full">
+            {isLoading ? "Signing in..." : "Sign in"}
           </Button>
         </form>
 
-        <div className="text-center font-bold text-lg">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-black underline decoration-4 underline-offset-4 hover:bg-black hover:text-white transition-colors p-1">
-            Sign up
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          No account?{" "}
+          <Link to="/register" className="font-medium text-primary hover:underline">
+            Create one
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

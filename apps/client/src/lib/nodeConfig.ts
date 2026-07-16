@@ -1,36 +1,51 @@
 import type { NodeTypes } from "comman";
+import type { LucideIcon } from "lucide-react";
+import {
+  Timer,
+  Webhook,
+  CalendarClock,
+  Mail,
+  Globe,
+  Box,
+} from "lucide-react";
 
 export type NodeStyle = {
   title: string;
-  icon: string;
-  color: string;
+  Icon: LucideIcon;
+  surface: string;
+  accent: string;
 };
 
 export const NODE_STYLES: Record<NodeTypes, NodeStyle> = {
   timer: {
     title: "Timer",
-    icon: "⏳",
-    color: "bg-pink-300",
+    Icon: Timer,
+    surface: "bg-white",
+    accent: "bg-stone-100 text-stone-700",
   },
   webhook: {
     title: "Webhook",
-    icon: "🔗",
-    color: "bg-orange-300",
+    Icon: Webhook,
+    surface: "bg-white",
+    accent: "bg-sky-50 text-sky-800",
   },
   schedule: {
     title: "Schedule",
-    icon: "⏰",
-    color: "bg-indigo-300",
+    Icon: CalendarClock,
+    surface: "bg-white",
+    accent: "bg-teal-50 text-teal-800",
   },
   mail: {
     title: "Send Email",
-    icon: "📧",
-    color: "bg-blue-300",
+    Icon: Mail,
+    surface: "bg-white",
+    accent: "bg-blue-50 text-blue-800",
   },
   "http-request": {
     title: "HTTP Request",
-    icon: "🌐",
-    color: "bg-yellow-300",
+    Icon: Globe,
+    surface: "bg-white",
+    accent: "bg-amber-50 text-amber-900",
   },
 };
 
@@ -38,8 +53,9 @@ export function getNodeStyle(type: string): NodeStyle {
   return (
     NODE_STYLES[type as NodeTypes] || {
       title: type,
-      icon: "📦",
-      color: "bg-gray-300",
+      Icon: Box,
+      surface: "bg-white",
+      accent: "bg-muted text-muted-foreground",
     }
   );
 }

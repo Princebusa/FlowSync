@@ -1,42 +1,43 @@
-import { apiGetAllWorkflows, apiCreateWorkflow, apiExecuteWorkflow, apiStopWorkflowExecution } from "../lib/api";
+import {
+  apiGetAllWorkflows,
+  apiCreateWorkflow,
+  apiExecuteWorkflow,
+  apiStopWorkflowExecution,
+} from "../lib/api";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from '../contexts/AuthContext';
-import { Plus, Play, ExternalLink, LogOut } from 'lucide-react';
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { Plus, Play, Square, ExternalLink, LogOut } from "lucide-react";
+import { Button } from "../components/ui/button";
 
-export default function dashboard() {
+export default function Dashboard() {
   const { logout } = useAuth();
   const [data, setData] = useState<any>([]);
   const [loading, setLoading] = useState(false);
-
   const navigate = useNavigate();
-  
+
   useEffect(() => {
     const fetchWorkflows = async () => {
-      const users = await apiGetAllWorkflows();
-      setData(users);
+      const workflows = await apiGetAllWorkflows();
+      setData(workflows);
     };
-    
+
     fetchWorkflows();
-
-    // Refresh workflow list every 5 seconds to catch status updates from the backend/executor
     const interval = setInterval(fetchWorkflows, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
   const createNewWorkflow = async () => {
     setLoading(true);
     try {
-      const newWorkflow = {
+      const response = await apiCreateWorkflow({
         name: `Workflow ${data.length + 1}`,
         nodes: [],
-        edges: []
-      };
-      const response = await apiCreateWorkflow(newWorkflow);
+        edges: [],
+      });
       navigate(`/workflow/${response._id}`);
     } catch (error) {
-      console.error('Failed to create workflow:', error);
+      console.error("Failed to create workflow:", error);
     } finally {
       setLoading(false);
     }
@@ -44,12 +45,10 @@ export default function dashboard() {
 
   const executeWorkflow = async (workflowId: string) => {
     try {
-      const result = await apiExecuteWorkflow(workflowId);
-      // Don't alert here to avoid blocking UI during polling
-      console.log('Execution started:', result);
+      await apiExecuteWorkflow(workflowId);
     } catch (error) {
-      console.error('Failed to execute workflow:', error);
-      alert('Failed to execute workflow.');
+      console.error("Failed to execute workflow:", error);
+      alert("Failed to execute workflow.");
     }
   };
 
@@ -57,94 +56,117 @@ export default function dashboard() {
     try {
       await apiStopWorkflowExecution(workflowId);
     } catch (error) {
-      console.error('Failed to stop workflow:', error);
-      alert('Failed to stop workflow.');
+      console.error("Failed to stop workflow:", error);
+      alert("Failed to stop workflow.");
     }
   };
 
   return (
-    <div className="min-h-screen bg-yellow-50 text-black p-6 md:p-12 font-sans selection:bg-pink-500 selection:text-white">
-      {/* Top Navbar */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-6 bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_#000]">
-        <h2 className="text-4xl font-black uppercase tracking-tight flex items-center gap-3">
-          FlowSync<span className="text-pink-500"></span> <span className="text-2xl text-gray-500 bg-gray-200 px-2 py-1 border-2 border-black">Dashboard</span>
-        </h2>
-        
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={createNewWorkflow}
-            disabled={loading}
-            className={`flex items-center gap-2 px-6 py-3 font-bold uppercase border-4 border-black text-lg
-              ${loading ? 'bg-gray-300 opacity-75' : 'bg-blue-400 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_0_#000] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all'}`}
-          >
-            <Plus className="w-6 h-6" /> {loading ? 'Creating...' : 'New Workflow'}
-          </button>
-          
-          <button 
-            onClick={() => logout()}
-            className="flex items-center gap-2 px-6 py-3 bg-red-400 font-bold uppercase border-4 border-black text-lg hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_0_#000] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all"
-          >
-            <LogOut className="w-6 h-6" /> Logout
-          </button>
+    <div className="min-h-screen">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="font-display text-lg font-semibold tracking-tight">
+              FlowSync
+            </Link>
+            <span className="text-border">/</span>
+            <span className="text-sm text-muted-foreground">Workflows</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={createNewWorkflow} disabled={loading} size="sm">
+              <Plus className="h-4 w-4" />
+              {loading ? "Creating..." : "New workflow"}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+            >
+              <LogOut className="h-4 w-4" />
+              Log out
+            </Button>
+          </div>
         </div>
-      </div>
-      
-      {/* Main Content Area */}
-      {data.length === 0 ? (
-        <div className="bg-white border-4 border-black p-12 text-center shadow-[12px_12px_0_0_#000] max-w-2xl mx-auto mt-24">
-          <div className="text-8xl mb-6">🏜️</div>
-          <h3 className="text-4xl font-black uppercase mb-4">It's quiet here.</h3>
-          <p className="text-xl font-bold mb-8">You haven't built any workflows yet. Click the shiny blue button to start automating!</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-          {data.map((itm: any, index: number) => {
-            // Cycle through vibrant background colors for each card
-            const bgColors = ['bg-pink-300', 'bg-blue-300', 'bg-yellow-300', 'bg-green-300'];
-            const cardBg = bgColors[index % bgColors.length];
+      </header>
 
-            return (
-              <div 
-                key={itm._id || index} 
-                className={`${cardBg} border-4 border-black p-6 shadow-[8px_8px_0_0_#000] flex flex-col justify-between hover:-translate-y-2 hover:-translate-x-2 hover:shadow-[16px_16px_0_0_#000] transition-all duration-200 cursor-default`}
+      <main className="mx-auto max-w-6xl px-6 py-10">
+        {data.length === 0 ? (
+          <div className="mx-auto max-w-md rounded-2xl border border-dashed border-border bg-card/50 px-8 py-16 text-center">
+            <h2 className="font-display text-xl font-medium tracking-tight">No workflows yet</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Create your first automation to get started.
+            </p>
+            <Button onClick={createNewWorkflow} disabled={loading} className="mt-6" size="sm">
+              <Plus className="h-4 w-4" />
+              New workflow
+            </Button>
+          </div>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {data.map((itm: any, index: number) => (
+              <div
+                key={itm._id || index}
+                className="flex flex-col justify-between rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div>
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-3xl font-black uppercase leading-tight">{itm.name || `Workflow ${index + 1}`}</h3>
-                    <div className="bg-white border-4 border-black px-2 py-1 text-sm font-bold shadow-[2px_2px_0_0_#000]">
-                       {itm.nodes?.length || 0} Nodes
-                    </div>
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="font-display text-base font-medium tracking-tight">
+                      {itm.name || `Workflow ${index + 1}`}
+                    </h3>
+                    {itm.isRunning ? (
+                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        Running
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                        Idle
+                      </span>
+                    )}
                   </div>
-                  <p className="text-sm font-bold bg-white/50 border-2 border-black inline-block px-2 py-1 mb-6 truncate max-w-full">
-                    ID: {itm._id}
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {itm.nodes?.length || 0} nodes
                   </p>
                 </div>
-                
-                <div className="flex gap-4 mt-4">
-                  <button 
+
+                <div className="mt-6 flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
                     onClick={() => navigate(`/workflow/${itm._id}`)}
-                    className="flex-1 flex justify-center items-center gap-2 py-3 bg-white border-4 border-black font-black uppercase hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0_0_#000] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all"
                   >
-                    <ExternalLink className="w-5 h-5" /> Open
-                  </button>
-                  <button 
-                    onClick={() => itm.isRunning ? stopWorkflow(itm._id) : executeWorkflow(itm._id)}
-                    className={`flex-1 flex justify-center items-center gap-2 py-3 border-4 border-black font-black uppercase
-                      ${itm.isRunning ? 'bg-red-500 hover:bg-red-400' : 'bg-black text-white hover:bg-gray-800'} 
-                      hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[4px_4px_0_0_#fff] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all`}
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    Open
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={itm.isRunning ? "destructive" : "default"}
+                    className="flex-1"
+                    onClick={() =>
+                      itm.isRunning ? stopWorkflow(itm._id) : executeWorkflow(itm._id)
+                    }
                   >
                     {itm.isRunning ? (
-                      'Stop'
+                      <>
+                        <Square className="h-3.5 w-3.5" />
+                        Stop
+                      </>
                     ) : (
-                      <><Play className="w-5 h-5 fill-white" /> Run</>
+                      <>
+                        <Play className="h-3.5 w-3.5" />
+                        Run
+                      </>
                     )}
-                  </button>
+                  </Button>
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 }

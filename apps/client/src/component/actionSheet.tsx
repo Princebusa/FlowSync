@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
-  SheetClose,
   SheetContent,
   SheetDescription,
   SheetFooter,
@@ -23,16 +22,8 @@ import {
 } from "@/components/ui/select";
 
 const SUPPORTED_ACTION = [
-  {
-    id: "http-request" as const,
-    title: "HTTP Request",
-    description: "Make HTTP requests to any API",
-  },
-  {
-    id: "mail" as const,
-    title: "Send Email (SMTP)",
-    description: "Send emails directly via SMTP",
-  },
+  { id: "http-request" as const, title: "HTTP Request" },
+  { id: "mail" as const, title: "Send Email (SMTP)" },
 ];
 
 export const ActionSheet = ({
@@ -52,12 +43,13 @@ export const ActionSheet = ({
         if (!open) onClose();
       }}
     >
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create an Action</SheetTitle>
-          <SheetDescription>Select an action node and configure its parameters</SheetDescription>
+          <SheetTitle className="font-display">Add action</SheetTitle>
+          <SheetDescription>Choose a node and configure it</SheetDescription>
         </SheetHeader>
-        <div className="px-3 grid gap-5 mt-4">
+
+        <div className="mt-4 grid gap-4 px-4">
           <Select
             value={selectedAction}
             onValueChange={(value) => {
@@ -65,8 +57,8 @@ export const ActionSheet = ({
               setMetaData({});
             }}
           >
-            <SelectTrigger className="w-full border-2 border-black rounded-none shadow-[2px_2px_0_0_#000]">
-              <SelectValue placeholder="Select an Action" />
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select an action" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -80,145 +72,137 @@ export const ActionSheet = ({
           </Select>
 
           {selectedAction === "http-request" && (
-            <div className="grid gap-3 p-4 border-4 border-black bg-yellow-300 shadow-[4px_4px_0_0_#000] mt-4">
-              <h3 className="font-black uppercase">HTTP Configuration</h3>
+            <div className="grid gap-3 rounded-lg border border-border bg-muted/30 p-4">
               <div className="grid gap-2">
-                <Label className="font-bold uppercase text-xs">Method</Label>
+                <Label>Method</Label>
                 <Select
                   value={metadata.method}
-                  onValueChange={(value) => setMetaData((prev: MetaData) => ({ ...prev, method: value }))}
+                  onValueChange={(value) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, method: value }))
+                  }
                 >
-                  <SelectTrigger className="bg-white border-2 border-black rounded-none">
+                  <SelectTrigger>
                     <SelectValue placeholder="GET" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
-                    <SelectItem value="PATCH">PATCH</SelectItem>
+                    {["GET", "POST", "PUT", "DELETE", "PATCH"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label className="font-bold uppercase text-xs">Target URL</Label>
+                <Label>URL</Label>
                 <Input
-                  placeholder="https://api.example.com/endpoint"
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, url: e.target.value }))}
-                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
+                  placeholder="https://api.example.com"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, url: e.target.value }))
+                  }
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="font-bold uppercase text-xs">Headers (JSON)</Label>
+                <Label>Headers (JSON)</Label>
                 <Input
-                  placeholder='{"Authorization": "Bearer token"}'
+                  placeholder='{"Authorization":"Bearer …"}'
                   onChange={(e) => {
                     try {
-                      const headers = JSON.parse(e.target.value);
-                      setMetaData((prev: MetaData) => ({ ...prev, headers }));
+                      setMetaData((prev: MetaData) => ({
+                        ...prev,
+                        headers: JSON.parse(e.target.value),
+                      }));
                     } catch {
-                      /* ignore invalid JSON while typing */
+                      /* ignore */
                     }
                   }}
-                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
                 />
               </div>
               <div className="grid gap-2">
-                <Label className="font-bold uppercase text-xs">Body (JSON)</Label>
+                <Label>Body (JSON)</Label>
                 <Input
-                  placeholder='{"key": "value"}'
-                  onChange={(e) => {
-                    try {
-                      const body = JSON.parse(e.target.value);
-                      setMetaData((prev: MetaData) => ({ ...prev, body: JSON.stringify(body) }));
-                    } catch {
-                      /* ignore invalid JSON while typing */
-                    }
-                  }}
-                  className="border-2 border-black rounded-none shadow-[2px_2px_0_0_#000] bg-white font-bold"
+                  placeholder='{"key":"value"}'
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, body: e.target.value }))
+                  }
                 />
               </div>
             </div>
           )}
 
           {selectedAction === "mail" && (
-            <div className="grid gap-3 p-4 border-4 border-black bg-blue-300 shadow-[4px_4px_0_0_#000] mt-4 max-h-[50vh] overflow-y-auto">
-              <h3 className="font-black uppercase">SMTP Configuration</h3>
+            <div className="grid max-h-[50vh] gap-3 overflow-y-auto rounded-lg border border-border bg-muted/30 p-4">
               <div className="grid grid-cols-2 gap-2">
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-[10px]">SMTP Host</Label>
+                  <Label>SMTP host</Label>
                   <Input
-                    placeholder="smtp.gmail.com"
-                    onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, host: e.target.value }))}
-                    className="border-2 border-black rounded-none bg-white text-xs h-8"
+                    onChange={(e) =>
+                      setMetaData((prev: MetaData) => ({ ...prev, host: e.target.value }))
+                    }
                   />
                 </div>
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-[10px]">Port</Label>
+                  <Label>Port</Label>
                   <Input
                     type="number"
-                    placeholder="587"
-                    onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, port: e.target.value }))}
-                    className="border-2 border-black rounded-none bg-white text-xs h-8"
+                    onChange={(e) =>
+                      setMetaData((prev: MetaData) => ({ ...prev, port: e.target.value }))
+                    }
                   />
                 </div>
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-[10px]">Username</Label>
+                <Label>Username</Label>
                 <Input
-                  placeholder="your-email@gmail.com"
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, user: e.target.value }))}
-                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, user: e.target.value }))
+                  }
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-[10px]">App Password</Label>
+                <Label>Password</Label>
                 <Input
                   type="password"
-                  placeholder="****"
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, password: e.target.value }))}
-                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, password: e.target.value }))
+                  }
                 />
               </div>
-              <hr className="border-black border-2 my-2" />
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-[10px]">To Address</Label>
+                <Label>To</Label>
                 <Input
-                  placeholder="recipient@example.com"
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, to: e.target.value }))}
-                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, to: e.target.value }))
+                  }
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-[10px]">Subject</Label>
+                <Label>Subject</Label>
                 <Input
-                  placeholder="Automated Alert"
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, subject: e.target.value }))}
-                  className="border-2 border-black rounded-none bg-white text-xs h-8"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, subject: e.target.value }))
+                  }
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-[10px]">Body Text</Label>
+                <Label>Body</Label>
                 <textarea
-                  placeholder="Workflow execution completed."
-                  onChange={(e) => setMetaData((prev: MetaData) => ({ ...prev, body: e.target.value }))}
-                  className="border-2 border-black rounded-none bg-white text-xs p-2 min-h-[60px]"
+                  className="min-h-[72px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+                  onChange={(e) =>
+                    setMetaData((prev: MetaData) => ({ ...prev, body: e.target.value }))
+                  }
                 />
-                <span className="text-[9px] text-blue-800 font-bold italic">
-                  Tip: Use {"{{ $json.fieldName }}"} to insert data from previous nodes.
-                </span>
               </div>
             </div>
           )}
         </div>
 
-        <SheetFooter className="mt-8 flex flex-col sm:flex-col gap-4">
+        <SheetFooter className="mt-6 gap-2">
           <Button
-            type="submit"
-            className="neo-btn rounded-none bg-yellow-400 text-black w-full py-6 text-xl font-black uppercase hover:bg-yellow-300"
             onClick={() => {
               if (!selectedAction) return alert("Select an action");
-              if (selectedAction === "http-request" && !metadata.url) return alert("URL is required");
+              if (selectedAction === "http-request" && !metadata.url)
+                return alert("URL is required");
               if (
                 selectedAction === "mail" &&
                 (!metadata.host || !metadata.user || !metadata.password || !metadata.to)
@@ -228,13 +212,11 @@ export const ActionSheet = ({
               onSelect(selectedAction, metadata);
             }}
           >
-            Save changes
+            Add node
           </Button>
-          <SheetClose asChild>
-            <Button className="neo-btn rounded-none bg-white text-black w-full py-4 text-lg font-bold uppercase hover:bg-gray-100">
-              Close
-            </Button>
-          </SheetClose>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

@@ -22,21 +22,9 @@ import {
 } from "@/components/ui/select";
 
 const SUPPORTED_TRIGGER = [
-  {
-    id: "timer" as const,
-    title: "Timer",
-    description: "Run this node every X seconds",
-  },
-  {
-    id: "webhook" as const,
-    title: "Webhook",
-    description: "Triggered by HTTP requests",
-  },
-  {
-    id: "schedule" as const,
-    title: "Schedule",
-    description: "Run on specific schedule",
-  },
+  { id: "timer" as const, title: "Timer" },
+  { id: "webhook" as const, title: "Webhook" },
+  { id: "schedule" as const, title: "Schedule" },
 ];
 
 export const TriggerSheet = ({
@@ -49,12 +37,13 @@ export const TriggerSheet = ({
 
   return (
     <Sheet open={true}>
-      <SheetContent>
+      <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Create a Trigger</SheetTitle>
-          <SheetDescription>Configure the starting node for this workflow</SheetDescription>
+          <SheetTitle className="font-display">Add trigger</SheetTitle>
+          <SheetDescription>Start your workflow with a trigger node</SheetDescription>
         </SheetHeader>
-        <div className="px-3 grid gap-5">
+
+        <div className="mt-4 grid gap-4 px-4">
           <Select
             value={selectedTrigger}
             onValueChange={(value) => {
@@ -63,7 +52,7 @@ export const TriggerSheet = ({
             }}
           >
             <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a TRIGGER" />
+              <SelectValue placeholder="Select a trigger" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
@@ -79,19 +68,20 @@ export const TriggerSheet = ({
           {selectedTrigger === "timer" && (
             <div className="grid gap-3">
               <div className="grid gap-1">
-                <Label className="capitalize font-bold text-xs">Run Interval (Seconds)</Label>
+                <Label>Interval (seconds)</Label>
                 <Input
                   type="number"
                   placeholder="60"
                   onChange={(e) =>
-                    setMetaData((prev: MetaData) => ({ ...prev, time: Number(e.target.value) }))
+                    setMetaData((prev: MetaData) => ({
+                      ...prev,
+                      time: Number(e.target.value),
+                    }))
                   }
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="capitalize font-bold text-xs text-red-600">
-                  Auto-Stop After (End Time)
-                </Label>
+                <Label>Stop after</Label>
                 <Input
                   type="datetime-local"
                   onChange={(e) =>
@@ -105,7 +95,7 @@ export const TriggerSheet = ({
           {selectedTrigger === "webhook" && (
             <div className="grid gap-3">
               <div className="grid gap-2">
-                <Label>Endpoint Path</Label>
+                <Label>Endpoint path</Label>
                 <Input
                   placeholder="/webhook/my-endpoint"
                   onChange={(e) =>
@@ -114,7 +104,7 @@ export const TriggerSheet = ({
                 />
               </div>
               <div className="grid gap-2">
-                <Label>HTTP Method</Label>
+                <Label>HTTP method</Label>
                 <Select
                   value={metadata.method as string}
                   onValueChange={(value) =>
@@ -125,10 +115,11 @@ export const TriggerSheet = ({
                     <SelectValue placeholder="Select method" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    {["GET", "POST", "PUT", "DELETE"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -138,7 +129,7 @@ export const TriggerSheet = ({
           {selectedTrigger === "schedule" && (
             <div className="grid gap-3">
               <div className="grid gap-2">
-                <Label>Schedule Type</Label>
+                <Label>Schedule type</Label>
                 <Select
                   value={metadata.type as string}
                   onValueChange={(value) =>
@@ -150,7 +141,7 @@ export const TriggerSheet = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="interval">Interval</SelectItem>
-                    <SelectItem value="cron">Cron Expression</SelectItem>
+                    <SelectItem value="cron">Cron</SelectItem>
                     <SelectItem value="once">Once</SelectItem>
                   </SelectContent>
                 </Select>
@@ -160,7 +151,6 @@ export const TriggerSheet = ({
                   <Label>Interval (seconds)</Label>
                   <Input
                     type="number"
-                    placeholder="60"
                     onChange={(e) =>
                       setMetaData((prev: MetaData) => ({
                         ...prev,
@@ -172,7 +162,7 @@ export const TriggerSheet = ({
               )}
               {metadata.type === "cron" && (
                 <div className="grid gap-2">
-                  <Label>Cron Expression</Label>
+                  <Label>Cron expression</Label>
                   <Input
                     placeholder="0 * * * *"
                     onChange={(e) =>
@@ -186,19 +176,20 @@ export const TriggerSheet = ({
               )}
               {metadata.type === "once" && (
                 <div className="grid gap-2">
-                  <Label>Date & Time</Label>
+                  <Label>Date & time</Label>
                   <Input
                     type="datetime-local"
                     onChange={(e) =>
-                      setMetaData((prev: MetaData) => ({ ...prev, datetime: e.target.value }))
+                      setMetaData((prev: MetaData) => ({
+                        ...prev,
+                        datetime: e.target.value,
+                      }))
                     }
                   />
                 </div>
               )}
-              <div className="grid gap-1 mt-2">
-                <Label className="capitalize font-bold text-xs text-red-600">
-                  Auto-Stop After (End Time)
-                </Label>
+              <div className="grid gap-1">
+                <Label>Stop after</Label>
                 <Input
                   type="datetime-local"
                   onChange={(e) =>
@@ -209,14 +200,9 @@ export const TriggerSheet = ({
             </div>
           )}
         </div>
-        <SheetFooter className="mt-8">
-          <Button
-            type="submit"
-            className="neo-btn rounded-none bg-yellow-400 text-black w-full py-6 text-xl font-black uppercase hover:bg-yellow-300"
-            onClick={() => onSelect(selectedTrigger, metadata)}
-          >
-            Save changes
-          </Button>
+
+        <SheetFooter className="mt-6">
+          <Button onClick={() => onSelect(selectedTrigger, metadata)}>Add trigger</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

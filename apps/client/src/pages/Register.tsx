@@ -1,39 +1,39 @@
-import { useState, useEffect } from 'react';
-import type { FormEvent } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { apiRegister } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
+import { useState, useEffect } from "react";
+import type { FormEvent } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { apiRegister } from "../lib/api";
+import { useAuth } from "../contexts/AuthContext";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
 
 export default function Register() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login, isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [isAuthenticated, authLoading, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (password !== confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -42,100 +42,94 @@ export default function Register() {
     try {
       const data = await apiRegister({ username, email, password });
       login(data.user);
-      navigate('/dashboard');
+      navigate("/dashboard");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-yellow-50 p-6 pt-16 selection:bg-blue-400 selection:text-white">
-      <Link to="/" className="absolute top-8 left-8 font-black text-3xl tracking-tighter hover:bg-black hover:text-white transition-colors p-2">
-        FlowSync<span className="text-pink-500"></span>
+    <div className="relative flex min-h-screen items-center justify-center px-6 py-16">
+      <Link
+        to="/"
+        className="absolute left-6 top-6 font-display text-lg font-semibold tracking-tight"
+      >
+        FlowSync
       </Link>
-      
-      <div className="w-full max-w-md p-10 space-y-8 bg-blue-300 border-4 border-black shadow-[8px_8px_0_0_#000]">
-        <div className="text-center">
-          <h1 className="text-5xl font-black uppercase tracking-tight">Register</h1>
-          <p className="text-black font-bold mt-2 text-lg">Create a new account</p>
+
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-8 shadow-sm">
+        <div className="mb-8 space-y-1">
+          <h1 className="font-display text-2xl font-semibold tracking-tight">Create account</h1>
+          <p className="text-sm text-muted-foreground">Start building workflows in minutes.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-4 bg-white border-4 border-black font-bold text-red-600 shadow-[4px_4px_0_0_#000]">
+            <div className="rounded-lg border border-destructive/20 bg-red-50 px-3 py-2 text-sm text-destructive">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="username" className="font-bold text-lg uppercase">Username</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
               id="username"
-              type="text"
-              placeholder="johndoe"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="font-bold text-lg uppercase">Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password" className="font-bold text-lg uppercase">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
-              placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="font-bold text-lg uppercase">Confirm</Label>
+            <Label htmlFor="confirmPassword">Confirm password</Label>
             <Input
               id="confirmPassword"
               type="password"
-              placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              className="bg-white border-4 border-black shadow-[4px_4px_0_0_#000] p-6 text-lg font-bold placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:translate-x-1 focus:translate-y-1 focus:shadow-none transition-all rounded-none"
+              className="h-10"
             />
           </div>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full bg-yellow-400 text-black py-8 text-2xl font-black uppercase rounded-none border-4 border-black ${isLoading ? 'opacity-50' : 'shadow-[4px_4px_0_0_#000] hover:-translate-y-1 hover:-translate-x-1 active:translate-y-1 active:translate-x-1 active:shadow-none transition-all'}`}
-          >
-            {isLoading ? 'Creating...' : 'Sign Up'}
+          <Button type="submit" disabled={isLoading} className="mt-2 h-10 w-full">
+            {isLoading ? "Creating..." : "Create account"}
           </Button>
         </form>
 
-        <div className="text-center font-bold text-lg">
-          Already have an account?{' '}
-          <Link to="/login" className="text-black underline decoration-4 underline-offset-4 hover:bg-black hover:text-white transition-colors p-1">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          Already have an account?{" "}
+          <Link to="/login" className="font-medium text-primary hover:underline">
             Sign in
           </Link>
-        </div>
+        </p>
       </div>
     </div>
   );

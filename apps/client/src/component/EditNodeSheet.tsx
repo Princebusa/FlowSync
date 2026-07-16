@@ -38,11 +38,10 @@ export function EditNodeSheet({
 }: EditNodeSheetProps) {
   const [form, setForm] = useState<MetaData>(metadata || {});
   const style = getNodeStyle(nodeType);
+  const { Icon } = style;
 
   useEffect(() => {
-    if (open) {
-      setForm(metadata || {});
-    }
+    if (open) setForm(metadata || {});
   }, [open, metadata]);
 
   const setField = (key: string, value: unknown) => {
@@ -71,34 +70,30 @@ export function EditNodeSheet({
     >
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 uppercase font-black">
-            <span>{style.icon}</span>
+          <SheetTitle className="font-display flex items-center gap-2">
+            <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
             Edit {style.title}
           </SheetTitle>
           <SheetDescription>Update settings for this node</SheetDescription>
         </SheetHeader>
 
-        <div className="px-4 grid gap-4 mt-4">
+        <div className="mt-4 grid gap-4 px-4">
           {nodeType === "timer" && (
             <>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Run Interval (Seconds)</Label>
+                <Label>Interval (seconds)</Label>
                 <Input
                   type="number"
                   value={form.time ?? ""}
                   onChange={(e) => setField("time", Number(e.target.value))}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs text-red-600">
-                  Auto-Stop After (End Time)
-                </Label>
+                <Label>Stop after</Label>
                 <Input
                   type="datetime-local"
                   value={form.endTime ?? ""}
                   onChange={(e) => setField("endTime", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
             </>
@@ -107,28 +102,27 @@ export function EditNodeSheet({
           {nodeType === "webhook" && (
             <>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Endpoint Path</Label>
+                <Label>Endpoint path</Label>
                 <Input
                   value={form.endpoint ?? ""}
-                  placeholder="/webhook/my-endpoint"
                   onChange={(e) => setField("endpoint", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">HTTP Method</Label>
+                <Label>HTTP method</Label>
                 <Select
                   value={form.method || "POST"}
                   onValueChange={(value) => setField("method", value)}
                 >
-                  <SelectTrigger className="border-2 border-black rounded-none">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
+                    {["GET", "POST", "PUT", "DELETE"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -138,63 +132,56 @@ export function EditNodeSheet({
           {nodeType === "schedule" && (
             <>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Schedule Type</Label>
+                <Label>Schedule type</Label>
                 <Select
                   value={form.type || "interval"}
                   onValueChange={(value) => setField("type", value)}
                 >
-                  <SelectTrigger className="border-2 border-black rounded-none">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="interval">Interval</SelectItem>
-                    <SelectItem value="cron">Cron Expression</SelectItem>
+                    <SelectItem value="cron">Cron</SelectItem>
                     <SelectItem value="once">Once</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               {(form.type === "interval" || !form.type) && (
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-xs">Interval (seconds)</Label>
+                  <Label>Interval (seconds)</Label>
                   <Input
                     type="number"
                     value={form.interval ?? ""}
                     onChange={(e) => setField("interval", Number(e.target.value))}
-                    className="border-2 border-black rounded-none"
                   />
                 </div>
               )}
               {form.type === "cron" && (
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-xs">Cron Expression</Label>
+                  <Label>Cron expression</Label>
                   <Input
                     value={form.cronExpression ?? ""}
-                    placeholder="0 * * * *"
                     onChange={(e) => setField("cronExpression", e.target.value)}
-                    className="border-2 border-black rounded-none"
                   />
                 </div>
               )}
               {form.type === "once" && (
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-xs">Date & Time</Label>
+                  <Label>Date & time</Label>
                   <Input
                     type="datetime-local"
                     value={form.datetime ?? ""}
                     onChange={(e) => setField("datetime", e.target.value)}
-                    className="border-2 border-black rounded-none"
                   />
                 </div>
               )}
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs text-red-600">
-                  Auto-Stop After (End Time)
-                </Label>
+                <Label>Stop after</Label>
                 <Input
                   type="datetime-local"
                   value={form.endTime ?? ""}
                   onChange={(e) => setField("endTime", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
             </>
@@ -203,34 +190,32 @@ export function EditNodeSheet({
           {nodeType === "http-request" && (
             <>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Method</Label>
+                <Label>Method</Label>
                 <Select
                   value={form.method || "GET"}
                   onValueChange={(value) => setField("method", value)}
                 >
-                  <SelectTrigger className="border-2 border-black rounded-none">
+                  <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="GET">GET</SelectItem>
-                    <SelectItem value="POST">POST</SelectItem>
-                    <SelectItem value="PUT">PUT</SelectItem>
-                    <SelectItem value="DELETE">DELETE</SelectItem>
-                    <SelectItem value="PATCH">PATCH</SelectItem>
+                    {["GET", "POST", "PUT", "DELETE", "PATCH"].map((m) => (
+                      <SelectItem key={m} value={m}>
+                        {m}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Target URL</Label>
+                <Label>URL</Label>
                 <Input
                   value={form.url ?? ""}
-                  placeholder="https://api.example.com/endpoint"
                   onChange={(e) => setField("url", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Headers (JSON)</Label>
+                <Label>Headers (JSON)</Label>
                 <Input
                   defaultValue={
                     form.headers
@@ -239,24 +224,20 @@ export function EditNodeSheet({
                         : JSON.stringify(form.headers)
                       : ""
                   }
-                  placeholder='{"Authorization": "Bearer token"}'
                   onChange={(e) => {
                     try {
                       setField("headers", JSON.parse(e.target.value));
                     } catch {
-                      /* ignore while typing */
+                      /* ignore */
                     }
                   }}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Body (JSON)</Label>
+                <Label>Body (JSON)</Label>
                 <Input
                   defaultValue={form.body ?? ""}
-                  placeholder='{"key": "value"}'
                   onChange={(e) => setField("body", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
             </>
@@ -266,82 +247,62 @@ export function EditNodeSheet({
             <>
               <div className="grid grid-cols-2 gap-2">
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-xs">SMTP Host</Label>
+                  <Label>SMTP host</Label>
                   <Input
                     value={form.host ?? ""}
                     onChange={(e) => setField("host", e.target.value)}
-                    className="border-2 border-black rounded-none"
                   />
                 </div>
                 <div className="grid gap-1">
-                  <Label className="font-bold uppercase text-xs">Port</Label>
+                  <Label>Port</Label>
                   <Input
                     type="number"
                     value={form.port ?? ""}
                     onChange={(e) => setField("port", e.target.value)}
-                    className="border-2 border-black rounded-none"
                   />
                 </div>
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Username</Label>
+                <Label>Username</Label>
                 <Input
                   value={form.user ?? ""}
                   onChange={(e) => setField("user", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">App Password</Label>
+                <Label>Password</Label>
                 <Input
                   type="password"
                   value={form.password ?? ""}
                   onChange={(e) => setField("password", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">To Address</Label>
-                <Input
-                  value={form.to ?? ""}
-                  onChange={(e) => setField("to", e.target.value)}
-                  className="border-2 border-black rounded-none"
-                />
+                <Label>To</Label>
+                <Input value={form.to ?? ""} onChange={(e) => setField("to", e.target.value)} />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Subject</Label>
+                <Label>Subject</Label>
                 <Input
                   value={form.subject ?? ""}
                   onChange={(e) => setField("subject", e.target.value)}
-                  className="border-2 border-black rounded-none"
                 />
               </div>
               <div className="grid gap-1">
-                <Label className="font-bold uppercase text-xs">Body Text</Label>
+                <Label>Body</Label>
                 <textarea
                   value={form.body ?? ""}
                   onChange={(e) => setField("body", e.target.value)}
-                  className="border-2 border-black rounded-none bg-transparent p-2 min-h-[80px] text-sm"
+                  className="min-h-[80px] rounded-md border border-input bg-transparent px-3 py-2 text-sm"
                 />
-                <span className="text-[9px] text-muted-foreground font-bold italic">
-                  Tip: Use {"{{ $json.fieldName }}"} to insert data from previous nodes.
-                </span>
               </div>
             </>
           )}
         </div>
 
-        <SheetFooter className="mt-8 flex flex-col gap-3">
-          <Button
-            onClick={handleSave}
-            className="neo-btn rounded-none bg-yellow-400 text-black w-full py-6 text-xl font-black uppercase hover:bg-yellow-300"
-          >
-            Save
-          </Button>
-          <Button
-            onClick={onClose}
-            className="neo-btn rounded-none bg-white text-black w-full py-4 text-lg font-bold uppercase hover:bg-gray-100"
-          >
+        <SheetFooter className="mt-6 flex flex-col gap-2 sm:flex-col">
+          <Button onClick={handleSave}>Save</Button>
+          <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
         </SheetFooter>

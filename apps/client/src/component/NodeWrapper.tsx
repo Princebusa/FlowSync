@@ -1,56 +1,48 @@
-import { Loader2, Check, X, Trash2 } from 'lucide-react';
-import React from 'react';
-import { useReactFlow } from '@xyflow/react';
+import { Loader2, Check, X, Trash2 } from "lucide-react";
+import type { ReactNode, MouseEvent } from "react";
+import { useReactFlow } from "@xyflow/react";
 
 interface NodeWrapperProps {
   nodeId?: string;
-  status?: 'pending' | 'running' | 'success' | 'failed';
-  children: React.ReactNode;
+  status?: "pending" | "running" | "success" | "failed";
+  children: ReactNode;
 }
 
 export const NodeWrapper = ({ nodeId, status, children }: NodeWrapperProps) => {
   const { setNodes, setEdges } = useReactFlow();
 
-  const handleDelete = (e: React.MouseEvent) => {
+  const handleDelete = (e: MouseEvent) => {
     e.stopPropagation();
     if (!nodeId) return;
-    setNodes((nodes) => nodes.filter(n => n.id !== nodeId));
-    setEdges((edges) => edges.filter(e => e.source !== nodeId && e.target !== nodeId));
+    setNodes((nodes) => nodes.filter((n) => n.id !== nodeId));
+    setEdges((edges) =>
+      edges.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+    );
   };
 
   return (
-    <div className="relative group node-neo-wrapper">
-      {/* Delete Button (visible on hover) */}
+    <div className="group relative">
       {nodeId && (
-        <button 
+        <button
           onClick={handleDelete}
-          className="absolute -top-4 -right-4 z-30 bg-red-500 border-4 border-black shadow-[4px_4px_0_0_#000] w-10 h-10 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-400 hover:-translate-y-1 hover:-translate-x-1 hover:shadow-[6px_6px_0_0_#000] transition-all cursor-pointer"
+          className="absolute -right-2 -top-2 z-30 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-white text-muted-foreground opacity-0 shadow-sm transition-all hover:border-destructive/30 hover:bg-red-50 hover:text-destructive group-hover:opacity-100"
         >
-          <Trash2 className="w-5 h-5 text-black stroke-[3]" />
+          <Trash2 className="h-3.5 w-3.5" />
         </button>
       )}
 
-      <div className="hover:-translate-y-1 hover:-translate-x-1 active:translate-x-0 active:translate-y-0 transition-all duration-200 cursor-pointer">
-        <div className="[&>div]:!rounded-none [&>div]:!border-4 [&>div]:!border-black [&>div]:!shadow-[8px_8px_0_0_#000] hover:[&>div]:!shadow-[12px_12px_0_0_#000] [&>div]:transition-shadow">
-           {children}
-        </div>
-      </div>
-      
-      {/* Status Overlay */}
+      <div>{children}</div>
+
       {status && (
-        <div className="absolute -top-5 -left-5 z-20 bg-white border-4 border-black shadow-[4px_4px_0_0_#000] w-10 h-10 flex items-center justify-center animate-in zoom-in">
-          {status === 'running' && (
-             <Loader2 className="w-6 h-6 text-black stroke-[3] animate-spin" />
+        <div className="absolute -left-2 -top-2 z-20 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-white shadow-sm">
+          {status === "running" && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           )}
-          {status === 'success' && (
-             <div className="w-full h-full bg-green-400 flex items-center justify-center">
-               <Check className="w-6 h-6 text-black stroke-[4]" />
-             </div>
+          {status === "success" && (
+            <Check className="h-3.5 w-3.5 text-emerald-600" strokeWidth={2.5} />
           )}
-          {status === 'failed' && (
-             <div className="w-full h-full bg-red-400 flex items-center justify-center">
-               <X className="w-6 h-6 text-black stroke-[4]" />
-             </div>
+          {status === "failed" && (
+            <X className="h-3.5 w-3.5 text-destructive" strokeWidth={2.5} />
           )}
         </div>
       )}
