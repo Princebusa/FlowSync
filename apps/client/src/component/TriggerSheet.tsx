@@ -46,7 +46,7 @@ export const TriggerSheet = ({
     >
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="font-display">Add trigger</SheetTitle>
+          <SheetTitle className="font-second">Add trigger</SheetTitle>
           <SheetDescription>Start your workflow with a trigger node</SheetDescription>
         </SheetHeader>
 

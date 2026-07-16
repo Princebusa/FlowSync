@@ -306,7 +306,7 @@ export default function Workflow() {
   return (
     <div className="relative h-screen w-screen bg-[#f4f6f8]">
       <div className="absolute left-4 right-4 top-4 z-10 flex items-center justify-between gap-4 rounded-xl border border-border bg-card/95 px-4 py-2.5 shadow-sm backdrop-blur-sm">
-        <div className="font-display flex items-center gap-2 text-sm font-medium tracking-tight">
+        <div className="font-second flex items-center gap-2 text-sm font-medium tracking-tight">
           <img src="/logo.png" alt="FlowSync" className="h-4 w-4" />
           <span>FlowSync</span>
           <span className="text-muted-foreground">/</span>
@@ -438,7 +438,7 @@ export default function Workflow() {
       {executionLogs.length > 0 && (
         <div className="absolute bottom-4 right-4 top-20 z-20 flex w-80 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <span className="font-display text-sm font-medium">Live execution</span>
+            <span className="font-second text-sm font-medium">Live execution</span>
             <button
               onClick={() => setExecutionLogs([])}
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"

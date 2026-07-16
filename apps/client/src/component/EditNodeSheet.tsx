@@ -70,7 +70,7 @@ export function EditNodeSheet({
     >
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="font-display flex items-center gap-2">
+          <SheetTitle className="font-second flex items-center gap-2">
             <Icon className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
             Edit {style.title}
           </SheetTitle>

@@ -17,7 +17,7 @@ export function AddTriggerPlaceholder({ onClick }: AddTriggerPlaceholderProps) {
           <Plus className="h-6 w-6" strokeWidth={1.75} />
         </span>
         <div className="text-center">
-          <p className="font-display text-sm font-medium text-foreground">Add a trigger</p>
+          <p className="font-second text-sm font-medium text-foreground">Add a trigger</p>
           <p className="mt-1 text-xs text-muted-foreground">Start your workflow here</p>
         </div>
       </button>

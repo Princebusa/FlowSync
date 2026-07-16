@@ -45,7 +45,7 @@ export const ActionSheet = ({
     >
       <SheetContent className="overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="font-display">Add action</SheetTitle>
+          <SheetTitle className="font-second">Add action</SheetTitle>
           <SheetDescription>Choose a node and configure it</SheetDescription>
         </SheetHeader>
 

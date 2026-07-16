@@ -31,7 +31,7 @@ export function NodeCard({ id, type, isTrigger = false }: NodeCardProps) {
           >
             <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
           </span>
-          <span className="truncate font-display text-sm font-medium tracking-tight text-foreground">
+          <span className="truncate font-second text-sm font-medium tracking-tight text-foreground">
             {style.title}
           </span>
         </div>

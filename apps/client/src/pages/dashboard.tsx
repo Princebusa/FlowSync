@@ -66,7 +66,7 @@ export default function Dashboard() {
       <header className="border-b border-border bg-card/80 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
           <div className="flex items-center gap-3">
-            <Link to="/" className="font-display text-lg font-semibold tracking-tight">
+            <Link to="/" className="font-second text-lg font-semibold tracking-tight">
               FlowSync
             </Link>
             <span className="text-border">/</span>
@@ -95,7 +95,7 @@ export default function Dashboard() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         {data.length === 0 ? (
           <div className="mx-auto max-w-md rounded-2xl border border-dashed border-border bg-card/50 px-8 py-16 text-center">
-            <h2 className="font-display text-xl font-medium tracking-tight">No workflows yet</h2>
+            <h2 className="font-second text-xl font-medium tracking-tight">No workflows yet</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               Create your first automation to get started.
             </p>
@@ -113,7 +113,7 @@ export default function Dashboard() {
               >
                 <div>
                   <div className="flex items-start justify-between gap-3">
-                    <h3 className="font-display text-base font-medium tracking-tight">
+                    <h3 className="font-second text-base font-medium tracking-tight">
                       {itm.name || `Workflow ${index + 1}`}
                     </h3>
                     {itm.isRunning ? (
