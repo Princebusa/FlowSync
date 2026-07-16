@@ -1,4 +1,5 @@
 
+import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
 import {
   ArrowRight,
@@ -14,12 +15,13 @@ import {
   Twitter,
   Linkedin,
 } from "lucide-react";
-
+import { useAuth } from "../contexts/AuthContext";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0 },
 };
+
 export default function Home() {
   const reduce = useReducedMotion();
 
@@ -38,6 +40,8 @@ export default function Home() {
 }
 
 function Nav() {
+  const { isAuthenticated } = useAuth();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -12 }}
@@ -46,25 +50,47 @@ function Nav() {
       className="sticky top-0 z-50 border-b border-border/60 bg-background/70 backdrop-blur-xl"
     >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <a href="#" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <LogoMark />
           <span className="text-base font-semibold tracking-tight">FlowSync</span>
-        </a>
+        </Link>
         <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
-          <a href="#features" className="transition-colors hover:text-foreground">Features</a>
-          <a href="#workflows" className="transition-colors hover:text-foreground">Workflows</a>
-          <a href="#pricing" className="transition-colors hover:text-foreground">Pricing</a>
-          <a href="#docs" className="transition-colors hover:text-foreground">Docs</a>
+          <a href="#features" className="transition-colors hover:text-foreground">
+            Features
+          </a>
+          <a href="#workflows" className="transition-colors hover:text-foreground">
+            Workflows
+          </a>
+          <a href="#pricing" className="transition-colors hover:text-foreground">
+            Pricing
+          </a>
         </nav>
         <div className="flex items-center gap-2">
-          <a href="#" className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block">Sign in</a>
-          <a
-            href="#"
-            className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
-          >
-            Start free
-            <ArrowRight className="h-3.5 w-3.5" />
-          </a>
+          {isAuthenticated ? (
+            <Link
+              to="/dashboard"
+              className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
+            >
+              Dashboard
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          ) : (
+            <>
+              <Link
+                to="/login"
+                className="hidden text-sm text-muted-foreground transition-colors hover:text-foreground sm:inline-block"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow-[var(--shadow-soft)] transition-transform hover:scale-[1.02]"
+              >
+                Start free
+                <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </motion.header>
@@ -74,12 +100,15 @@ function Nav() {
 function LogoMark() {
   return (
     <div className="grid h-7 w-7 place-items-center rounded-lg bg-brand text-brand-foreground">
-      <Workflow className="h-4 w-4" />
+      <img src="/logo.png" alt="FlowSync" className="h-7 w-7" />
     </div>
   );
 }
 
 function Hero({ reduce }: { reduce: boolean }) {
+  const { isAuthenticated } = useAuth();
+  const primaryTo = isAuthenticated ? "/dashboard" : "/register";
+
   return (
     <section className="relative overflow-hidden">
       <div
@@ -119,8 +148,8 @@ function Hero({ reduce }: { reduce: boolean }) {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground md:text-lg"
           >
-            FlowSync is a node-based automation platform. Drag, drop and
-            connect — from simple triggers to complex AI pipelines, all in one canvas.
+            FlowSync is a node-based automation platform. Drag, drop and connect — from
+            simple triggers to complex AI pipelines, all in one canvas.
           </motion.p>
 
           <motion.div
@@ -128,19 +157,19 @@ function Hero({ reduce }: { reduce: boolean }) {
             transition={{ duration: 0.7, ease: "easeOut" }}
             className="mt-8 flex flex-wrap items-center justify-center gap-3"
           >
-            <a
-              href="#"
+            <Link
+              to={primaryTo}
               className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-brand-foreground shadow-[var(--shadow-elegant)] transition-transform hover:scale-[1.02]"
             >
               Start building free
               <ArrowRight className="h-4 w-4" />
-            </a>
+            </Link>
             <a
-              href="#"
+              href="#workflows"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-brand-soft"
             >
               <Play className="h-3.5 w-3.5" />
-              Watch demo
+              See how it works
             </a>
           </motion.div>
 
@@ -445,6 +474,9 @@ function NodeShowcase() {
 }
 
 function Pricing() {
+  const { isAuthenticated } = useAuth();
+  const startTo = isAuthenticated ? "/dashboard" : "/register";
+
   const plans = [
     {
       name: "Starter",
@@ -453,6 +485,7 @@ function Pricing() {
       desc: "For makers and first workflows.",
       features: ["3 active workflows", "1,000 runs / month", "Community support"],
       cta: "Start free",
+      to: startTo,
       featured: false,
     },
     {
@@ -462,6 +495,7 @@ function Pricing() {
       desc: "For growing teams shipping automations.",
       features: ["Unlimited workflows", "100k runs / month", "Version history", "Priority support"],
       cta: "Start 14-day trial",
+      to: startTo,
       featured: true,
     },
     {
@@ -471,6 +505,7 @@ function Pricing() {
       desc: "For regulated and large orgs.",
       features: ["SSO & SCIM", "Audit logs & RBAC", "Dedicated support", "On-prem deploy"],
       cta: "Talk to sales",
+      to: "/register",
       featured: false,
     },
   ];
@@ -504,23 +539,29 @@ function Pricing() {
             <h3 className="text-sm font-medium">{p.name}</h3>
             <div className="mt-4 flex items-baseline gap-1.5">
               <span className="font-display text-5xl tracking-tight">{p.price}</span>
-              <span className={`text-sm ${p.featured ? "text-brand-foreground/70" : "text-muted-foreground"}`}>
+              <span
+                className={`text-sm ${p.featured ? "text-brand-foreground/70" : "text-muted-foreground"}`}
+              >
                 {p.per}
               </span>
             </div>
-            <p className={`mt-2 text-sm ${p.featured ? "text-brand-foreground/80" : "text-muted-foreground"}`}>
+            <p
+              className={`mt-2 text-sm ${p.featured ? "text-brand-foreground/80" : "text-muted-foreground"}`}
+            >
               {p.desc}
             </p>
             <ul className="mt-6 space-y-2.5 text-sm">
               {p.features.map((f) => (
                 <li key={f} className="flex items-center gap-2">
-                  <Check className={`h-4 w-4 ${p.featured ? "text-brand-foreground" : "text-brand"}`} />
+                  <Check
+                    className={`h-4 w-4 ${p.featured ? "text-brand-foreground" : "text-brand"}`}
+                  />
                   {f}
                 </li>
               ))}
             </ul>
-            <a
-              href="#"
+            <Link
+              to={p.to}
               className={`mt-8 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium transition-transform hover:scale-[1.02] ${
                 p.featured
                   ? "bg-brand-foreground text-brand"
@@ -529,7 +570,7 @@ function Pricing() {
             >
               {p.cta}
               <ArrowRight className="h-3.5 w-3.5" />
-            </a>
+            </Link>
           </motion.div>
         ))}
       </div>
@@ -538,6 +579,9 @@ function Pricing() {
 }
 
 function CTA() {
+  const { isAuthenticated } = useAuth();
+  const to = isAuthenticated ? "/dashboard" : "/register";
+
   return (
     <section className="mx-auto max-w-6xl px-6 pb-24">
       <motion.div
@@ -555,13 +599,13 @@ function CTA() {
           <p className="mt-4 text-brand-foreground/80">
             Try FlowSync free. Ship your first workflow in the next 10 minutes.
           </p>
-          <a
-            href="#"
+          <Link
+            to={to}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand-foreground px-5 py-2.5 text-sm font-medium text-brand transition-transform hover:scale-[1.02]"
           >
             Start building — it's free
             <ArrowRight className="h-4 w-4" />
-          </a>
+          </Link>
         </div>
       </motion.div>
     </section>
@@ -572,20 +616,50 @@ function Footer() {
   return (
     <footer className="border-t border-border/60">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-6 py-10 md:flex-row">
-        <div className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
           <LogoMark />
           <span className="text-sm font-medium">FlowSync</span>
           <span className="text-xs text-muted-foreground">© {new Date().getFullYear()}</span>
-        </div>
+        </Link>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
-          <a href="#" className="hover:text-foreground">Privacy</a>
-          <a href="#" className="hover:text-foreground">Terms</a>
-          <a href="#" className="hover:text-foreground">Docs</a>
+          <a href="#features" className="hover:text-foreground">
+            Features
+          </a>
+          <a href="#pricing" className="hover:text-foreground">
+            Pricing
+          </a>
+          <Link to="/register" className="hover:text-foreground">
+            Get started
+          </Link>
         </div>
         <div className="flex items-center gap-3 text-muted-foreground">
-          <a href="#" aria-label="GitHub" className="hover:text-foreground"><Github className="h-4 w-4" /></a>
-          <a href="#" aria-label="Twitter" className="hover:text-foreground"><Twitter className="h-4 w-4" /></a>
-          <a href="#" aria-label="LinkedIn" className="hover:text-foreground"><Linkedin className="h-4 w-4" /></a>
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="GitHub"
+            className="hover:text-foreground"
+          >
+            <Github className="h-4 w-4" />
+          </a>
+          <a
+            href="https://twitter.com"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Twitter"
+            className="hover:text-foreground"
+          >
+            <Twitter className="h-4 w-4" />
+          </a>
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="LinkedIn"
+            className="hover:text-foreground"
+          >
+            <Linkedin className="h-4 w-4" />
+          </a>
         </div>
       </div>
     </footer>
