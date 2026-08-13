@@ -112,7 +112,7 @@ export function EditNodeSheet({
                 <Label>HTTP method</Label>
                 <Select
                   value={form.method || "POST"}
-                  onValueChange={(value) => setField("method", value)}
+                  onValueChange={(value: string) => setField("method", value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -135,7 +135,7 @@ export function EditNodeSheet({
                 <Label>Schedule type</Label>
                 <Select
                   value={form.type || "interval"}
-                  onValueChange={(value) => setField("type", value)}
+                  onValueChange={(value: string) => setField("type", value)}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -193,7 +193,7 @@ export function EditNodeSheet({
                 <Label>Method</Label>
                 <Select
                   value={form.method || "GET"}
-                  onValueChange={(value) => setField("method", value)}
+                  onValueChange={(value: string) => setField("method", value)}
                 >
                   <SelectTrigger>
                     <SelectValue />

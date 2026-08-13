@@ -1,13 +1,23 @@
 {
   "name": "comman",
   "version": "1.0.0",
-  "main": "dist/index.js",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
-  "./types": "./dist/types/index.js"
-  },  "scripts": {
-   "build": "tsc"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.js",
+      "default": "./dist/types/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
   },
   "author": "",
   "license": "ISC",

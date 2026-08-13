@@ -53,7 +53,7 @@ export const TriggerSheet = ({
         <div className="mt-4 grid gap-4 px-4">
           <Select
             value={selectedTrigger}
-            onValueChange={(value) => {
+            onValueChange={(value: string) => {
               setSelectedTrigger(value as NodeTypes);
               setMetaData({});
             }}
@@ -114,7 +114,7 @@ export const TriggerSheet = ({
                 <Label>HTTP method</Label>
                 <Select
                   value={metadata.method as string}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     setMetaData((prev: MetaData) => ({ ...prev, method: value }))
                   }
                 >
@@ -139,7 +139,7 @@ export const TriggerSheet = ({
                 <Label>Schedule type</Label>
                 <Select
                   value={metadata.type as string}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     setMetaData((prev: MetaData) => ({ ...prev, type: value }))
                   }
                 >
