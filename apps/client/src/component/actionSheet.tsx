@@ -39,7 +39,7 @@ export const ActionSheet = ({
   return (
     <Sheet
       open={true}
-      onOpenChange={(open) => {
+      onOpenChange={(open: boolean) => {
         if (!open) onClose();
       }}
     >

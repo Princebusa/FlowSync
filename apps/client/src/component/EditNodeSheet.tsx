@@ -64,7 +64,7 @@ export function EditNodeSheet({
   return (
     <Sheet
       open={open}
-      onOpenChange={(isOpen) => {
+      onOpenChange={(isOpen: boolean) => {
         if (!isOpen) onClose();
       }}
     >
