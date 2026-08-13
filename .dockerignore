@@ -7,8 +7,8 @@
 .git
 .gitignore
 **/*.md
-apps/client
-apps/backend
+apps/client/**
+!apps/client/package.json
 .turbo
 coverage
 **/*.log

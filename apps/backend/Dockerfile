@@ -14,13 +14,15 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN bun install --frozen-lockfile
 
+COPY packages/comman ./packages/comman
 COPY packages/db ./packages/db
 COPY packages/queue ./packages/queue
-COPY apps/engine ./apps/engine
+COPY apps/backend ./apps/backend
 
-RUN bun run --cwd packages/queue build && \
+RUN bunx tsc -p packages/comman/tsconfig.json && \
+    bun run --cwd packages/queue build && \
     bun run --cwd packages/db build && \
-    bun run --cwd apps/engine build
+    bun run --cwd apps/backend build
 
 FROM oven/bun:1-slim AS runner
 
@@ -40,10 +42,13 @@ COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 RUN bun install --frozen-lockfile --production
 
+COPY --from=builder /app/packages/comman/dist ./packages/comman/dist
 COPY --from=builder /app/packages/db/dist ./packages/db/dist
 COPY --from=builder /app/packages/queue/dist ./packages/queue/dist
-COPY --from=builder /app/apps/engine/dist ./apps/engine/dist
+COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
 
-WORKDIR /app/apps/engine
+WORKDIR /app/apps/backend
+
+EXPOSE 2000
 
 CMD ["bun", "dist/index.js"]
