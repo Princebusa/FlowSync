@@ -52,7 +52,7 @@ export const ActionSheet = ({
         <div className="mt-4 grid gap-4 px-4">
           <Select
             value={selectedAction}
-            onValueChange={(value) => {
+            onValueChange={(value: string) => {
               setSelectedAction(value as NodeTypes);
               setMetaData({});
             }}
@@ -77,7 +77,7 @@ export const ActionSheet = ({
                 <Label>Method</Label>
                 <Select
                   value={metadata.method}
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     setMetaData((prev: MetaData) => ({ ...prev, method: value }))
                   }
                 >

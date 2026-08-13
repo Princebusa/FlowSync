@@ -6,9 +6,8 @@
   "exports": {
     ".": "./dist/index.js",
   "./types": "./dist/types/index.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  },  "scripts": {
+   "build": "tsc"
   },
   "author": "",
   "license": "ISC",
